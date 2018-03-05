@@ -51,7 +51,7 @@ if (!(Test-Path -Path $workingPath)) {
     mkdir $workingPath 
 }
 
- xcopy $PSScriptRoot\..\..\..\Extensions $workingPath\Extensions /Y /E /I
+ # xcopy $PSScriptRoot\..\..\..\Extensions $workingPath\Extensions /Y /E /I
  xcopy $PSScriptRoot\..\..\..\scripts $workingPath\scripts /Y /E /I
  xcopy $PSScriptRoot\..\..\..\src $workingPath\src /Y /E /I
  copy $PSScriptRoot\..\..\..\.gitignore $workingPath
@@ -130,7 +130,7 @@ else {
     Write-Host "Pushing code to VSTS" -ForegroundColor Yellow
 
     git remote add origin "$vstsUrl/DefaultCollection/_git/$projectName"
-    git push -u origin --all
+    git push -u origin --all 
 }
 Pop-Location
 
