@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -29,12 +30,14 @@ namespace MyDriving.POIService.v1
             // Set name to query string or body data
             tripId = tripId ?? data?.tripId;
 
+            List<POI> POIList; 
+
             using (var context = new MyDrivingContext())
             {
-                context.POIs.Select(x => x.Id == tripId).ToList();
+                POIList = context.POIs.Where(x => x.TripId == tripId).ToList<POI>();
             }
 
-            var json = JsonConvert.SerializeObject(tripId);
+            var json = JsonConvert.SerializeObject(POIList);
 
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
