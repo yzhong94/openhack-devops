@@ -73,7 +73,7 @@
     "sqlDBEdition": "[parameters('sqlDBEdition')]",
     "sqlServiceObjectiveName": "[parameters('sqlServiceObjectiveName')]",
     /* SQL Server settings - Analytics */
-    "sqlAnalyticsServerName": "[toLower(concat(variables('baseName'), '-', 'dbserver', '-', uniquestring(resourceGroup().id)))]",
+    "sqlAnalyticsServerName": "[toLower(concat(variables('baseName'), '-ssas-', 'dbserver', '-', uniquestring(resourceGroup().id)))]",
     "sqlAnalyticsServerAdminLogin": "YourUserName",
     "sqlAnalyticsDBName": "[concat(variables('baseName'), 'AnalyticsDB')]",
     "sqlAnalyticsDBEdition": "[parameters('sqlDBEdition')]",

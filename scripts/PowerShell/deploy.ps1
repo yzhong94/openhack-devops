@@ -19,7 +19,7 @@ Param(
 $deployment1 = $null
 $deployment2 = $null
 
-Import-Module Azure -ErrorAction Stop
+# Import-Module Azure -ErrorAction Stop
 
 $PreReqTemplateFile = [System.IO.Path]::Combine($PSScriptRoot, $PreReqTemplateFile)
 $TemplateFile = [System.IO.Path]::Combine($PSScriptRoot, $TemplateFile)
@@ -204,7 +204,7 @@ Write-Output "* Configuring ML..."
 Write-Output "**************************************************************************************************"
 	
 $context = Get-AzureRmContext
-$thumbprint = Read-Host "Please provide the thumbprint of your Azure management certificate. Press [Enter] directly to sign in using AAD."
+$thumbprint = [string]"2CD15C7C0A321E7DEDAF89959B2F34D82760E9DA"
 
 .\scripts\CopyMLExperiment.ps1 $subscription.SubscriptionId 'MyDriving' $ResourceGroupLocation $context.Account.Id $deployment1.Outputs.mlStorageAccountName.Value $deployment1.Outputs.mlStorageAccountKey.Value 'https://storage.azureml.net/directories/2e55da807f4a4273bfa99852d3d6e304/items' 'MyDriving' 'https://storage.azureml.net/directories/a9fb6aeb3a164eedaaa28da34f02c3b0/items' 'MyDriving [Predictive Exp.]' $thumbprint
 
