@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDrivingService", "MyDrivingService\MyDrivingService.csproj", "{209FA716-A7AD-4095-BD70-C8710FC66FA7}"
 EndProject
@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyDriving.ServiceObjects", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyDriving.POIService", "MyDriving.POIService\MyDriving.POIService.csproj", "{B0591ABF-3AC3-452E-AC28-A2485B7F5674}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDriving.POIService.v1", "MyDriving.POIService.v1\MyDriving.POIService.v1.csproj", "{FDEE39B7-D8C8-4807-865F-3F48EA56FE1D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyDriving.POIService.v1", "MyDriving.POIService.v1\MyDriving.POIService.v1.csproj", "{FDEE39B7-D8C8-4807-865F-3F48EA56FE1D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POIService-DataInsert", "POIService-DataInsert\POIService-DataInsert.csproj", "{086B867D-72E6-4D2A-9996-3EDC3D54A7C8}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -39,6 +41,10 @@ Global
 		{FDEE39B7-D8C8-4807-865F-3F48EA56FE1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDEE39B7-D8C8-4807-865F-3F48EA56FE1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FDEE39B7-D8C8-4807-865F-3F48EA56FE1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{086B867D-72E6-4D2A-9996-3EDC3D54A7C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{086B867D-72E6-4D2A-9996-3EDC3D54A7C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{086B867D-72E6-4D2A-9996-3EDC3D54A7C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{086B867D-72E6-4D2A-9996-3EDC3D54A7C8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
