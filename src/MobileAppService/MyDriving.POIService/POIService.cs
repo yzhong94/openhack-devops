@@ -13,25 +13,24 @@ namespace MyDriving.POIService
 {
     public static class POIService
     {
-        [FunctionName("POIService")]
+        [FunctionName("GetAllPOIs")]
         public static IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequest req, TraceWriter log)
         {
             log.Info("C# HTTP trigger function processed a request.");
 
-            string name = req.Query["name"];
+            string tripId = req.Query["tripId"];
 
             string requestBody = new StreamReader(req.Body).ReadToEnd();
             dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
+            tripId = tripId?? data?.tripId;
 
-            return name != null
-                ? (ActionResult)new OkObjectResult($"Hello, {name}")
+            var context = new MyDrivingContext();
+
+            context.POIs.Select(x => x.Id == tripId).ToList();
+
+            return tripId != null
+                ? (ActionResult)new OkObjectResult($"Hello, {tripId}")
                 : new BadRequestObjectResult("Please pass a name on the query string or in the request body");
-        }
-
-        public IQueryable<POI> GetAllPOIs(string tripId)
-        {
-            return Query().Where(p => p.TripId == tripId);
         }
     }
 }

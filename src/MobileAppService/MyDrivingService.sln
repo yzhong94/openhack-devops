@@ -7,9 +7,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDrivingService", "MyDrivi
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "MyDriving.DataObjects", "..\MobileApps\MyDriving\MyDriving.DataObjects\MyDriving.DataObjects.shproj", "{BD4403C0-6CD5-4030-B1A3-7AD98B9B80CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDriving.ServiceObjects", "MyDriving.ServiceObjects\MyDriving.ServiceObjects.csproj", "{F631E88D-6E32-40D7-979E-0B3877C31588}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyDriving.ServiceObjects", "MyDriving.ServiceObjects\MyDriving.ServiceObjects.csproj", "{F631E88D-6E32-40D7-979E-0B3877C31588}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDriving.POIService", "MyDriving.POIService\MyDriving.POIService.csproj", "{B0591ABF-3AC3-452E-AC28-A2485B7F5674}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyDriving.POIService", "MyDriving.POIService\MyDriving.POIService.csproj", "{B0591ABF-3AC3-452E-AC28-A2485B7F5674}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDriving.POIService.v1", "MyDriving.POIService.v1\MyDriving.POIService.v1.csproj", "{FDEE39B7-D8C8-4807-865F-3F48EA56FE1D}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -33,6 +35,10 @@ Global
 		{B0591ABF-3AC3-452E-AC28-A2485B7F5674}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B0591ABF-3AC3-452E-AC28-A2485B7F5674}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B0591ABF-3AC3-452E-AC28-A2485B7F5674}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDEE39B7-D8C8-4807-865F-3F48EA56FE1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDEE39B7-D8C8-4807-865F-3F48EA56FE1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDEE39B7-D8C8-4807-865F-3F48EA56FE1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDEE39B7-D8C8-4807-865F-3F48EA56FE1D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
