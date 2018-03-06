@@ -1,11 +1,13 @@
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using MyDriving.ServiceObjects;
+using Newtonsoft.Json;
 
 namespace MyDriving.POIService.v1
 {
@@ -27,14 +29,17 @@ namespace MyDriving.POIService.v1
             // Set name to query string or body data
             tripId = tripId ?? data?.tripId;
 
-            using(var context = new MyDrivingContext())
+            using (var context = new MyDrivingContext())
             {
                 context.POIs.Select(x => x.Id == tripId).ToList();
             }
 
-            return tripId == null
-                ? req.CreateResponse(HttpStatusCode.BadRequest, "Please pass a name on the query string or in the request body")
-                : req.CreateResponse(HttpStatusCode.OK, "Hello " + tripId);
+            var json = JsonConvert.SerializeObject(tripId);
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(json, Encoding.UTF8, "application/json")
+            };
         }
     }
 }
