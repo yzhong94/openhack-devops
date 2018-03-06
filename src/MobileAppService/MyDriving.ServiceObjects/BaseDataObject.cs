@@ -6,7 +6,7 @@ namespace MyDriving.ServiceObjects
 {
     public class BaseDataObject
     {
-        public string Id;
+        public string Id { get; set; }
 
         public BaseDataObject()
         {
