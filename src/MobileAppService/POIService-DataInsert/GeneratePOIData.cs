@@ -23,13 +23,16 @@ namespace MyDriving.POIService.v1
             {
                 conn.Open();
 
-                using (SqlCommand cmd = new SqlCommand(GetSQLCommand(TripId), conn))
+                for (int i = 0; i < 20; i++)
                 {
-                    log.Info($"{cmd.ExecuteNonQuery()} rows were updated");
-                }
+                    using (SqlCommand cmd = new SqlCommand(GetSQLCommand(TripId), conn))
+                    {
+                        log.Info($"{cmd.ExecuteNonQuery()} rows were updated");
+                    }
+                }                
             }
         }
-
+        
         private static string GetSQLCommand(string TripId)
         {
             return "DECLARE @datetimeoffset datetimeoffset(7) = '" + DateTime.Now.ToString() + "'" +
@@ -54,6 +57,7 @@ namespace MyDriving.POIService.v1
                          ", '" + DateTime.Now.ToString() + "')";
         }
 
+        #region CORDINATES
         private static int GetLatitude(int From, int To)
         {
             return GenerateRandom(From, To);
@@ -69,6 +73,6 @@ namespace MyDriving.POIService.v1
             Random rng = new Random();
             return rng.Next(From, To);
         }
-
+        #endregion
     }
 }
