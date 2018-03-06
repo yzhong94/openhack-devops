@@ -84,6 +84,14 @@ Follow these steps to deploy the starter kit using Bash:
 
 ## Manual Configuration
 
+### Modify MyDrivingDB
+From the portal, access the MyDrivingDB Sql database.  Login to the query editor and run:
+
+```
+ALTER TABLE IOTHubDatas ADD DEFAULT (0) FOR Deleted
+ALTER TABLE POIs ADD DEFAULT (0) FOR Deleted
+```
+
 ### Start Azure Stream Analytics jobs
 
 1. In the [Azure classic portal](https://manage.windowsazure.com/), go to **Stream Analytics** and select the **mydriving-archive** job.
