@@ -6,6 +6,8 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
+using System.Linq;
+using MyDriving.ServiceObjects;
 
 namespace MyDriving.POIService
 {
@@ -25,6 +27,11 @@ namespace MyDriving.POIService
             return name != null
                 ? (ActionResult)new OkObjectResult($"Hello, {name}")
                 : new BadRequestObjectResult("Please pass a name on the query string or in the request body");
+        }
+
+        public IQueryable<POI> GetAllPOIs(string tripId)
+        {
+            return Query().Where(p => p.TripId == tripId);
         }
     }
 }
