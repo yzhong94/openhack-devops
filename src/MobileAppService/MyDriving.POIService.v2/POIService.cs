@@ -25,8 +25,6 @@ namespace MyDriving.POIService.v2
 
             string tripId = req.Query["tripId"];
 
-            //var sqlConn = new SqlConnection();
-
             var builder = new ConfigurationBuilder()
                 .SetBasePath(context.FunctionAppDirectory)
                 .AddJsonFile("appSettings.json", optional: false, reloadOnChange: true)
@@ -65,14 +63,12 @@ namespace MyDriving.POIService.v2
                     });
                 }
 
+                rows.Close();
+
                 var poisSerialized = JsonConvert.SerializeObject(poiList);
 
-                return (ActionResult)new OkObjectResult(poisSerialized);
+                return new OkObjectResult(poisSerialized);
             }
-
-            return connectionString != null
-                ? (ActionResult)new OkObjectResult($"ConnectionString: {connectionString}")
-                : new BadRequestObjectResult("Could not load configuration file.");
         }
     }
 }
