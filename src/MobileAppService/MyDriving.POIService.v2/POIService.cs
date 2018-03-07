@@ -10,6 +10,7 @@ using System.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using MyDriving.ServiceObjects;
+using System;
 
 namespace MyDriving.POIService.v2
 {
@@ -39,7 +40,7 @@ namespace MyDriving.POIService.v2
             {
                 sqlConn.Open();
 
-                string query = $"SELECT * FROM POIs WHERE TripId = '{tripId}'";
+                string query = $"SELECT Id, Deleted, Latitude, Longitude, POIType, Timestamp, TripId FROM POIs WHERE TripId = '{tripId}'";
 
                 var sqlCommand = new SqlCommand(query, sqlConn);
 
@@ -54,7 +55,13 @@ namespace MyDriving.POIService.v2
                 {
                     poiList.Add(new POI
                     {
-                        Id = rows["Id"].ToString()
+                        Id = rows["Id"].ToString(),
+                        Deleted = bool.Parse(rows["Deleted"].ToString()),
+                        Latitude = double.Parse(rows["Latitude"].ToString()),
+                        Longitude = double.Parse(rows["Longitude"].ToString()),
+                        POIType = rows["POIType"].ToString().Equals("HardAcceleration") ? POIType.HardAcceleration : POIType.HardBrake,
+                        Timestamp = DateTime.Parse(rows["Timestamp"].ToString()),
+                        TripId = rows["TripId"].ToString()
                     });
                 }
 
