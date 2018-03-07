@@ -2,6 +2,7 @@ package openHackDevOps
 
 import (
 	"database/sql"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -9,6 +10,23 @@ import (
 
 	_ "github.com/denisenkom/go-mssqldb"
 )
+
+type Trip struct {
+	Id                  string
+	Name                string
+	UserId              string
+	RecordedTimeStamp   string
+	EndTimeStamp        string
+	Rating              int
+	IsComplete          bool
+	HasSimulatedOBDData bool
+	AverageSpeed        float64
+	FuelUsed            float64
+	HardStops           float32
+	HardAccelerations   float32
+	MainPhotoUrl        string
+	Distance            float64
+}
 
 var (
 	debug         = flag.Bool("debug", false, "enable debugging")
@@ -36,11 +54,9 @@ func GetAllTrips(w http.ResponseWriter, r *http.Request) {
 
 	defer conn.Close()
 
-	// query := fmt.Sprintf("SELECT Id, Name, RecordedTimeStamp FROM Trips WHERE UserId LIKE '%%s'", userId)
-
 	query := "SELECT Id, Name, RecordedTimeStamp FROM Trips WHERE UserId LIKE '%" + userId + "'"
 
-	statement, err := conn.Prepare(query)
+	statement, err := conn.Query(query)
 
 	if err != nil {
 		log.Fatal("Failed to create the statement query: ", err.Error())
@@ -48,23 +64,20 @@ func GetAllTrips(w http.ResponseWriter, r *http.Request) {
 
 	defer statement.Close()
 
-	var (
-		ID                string
-		Name              string
-		RecordedTimeStamp string
-	)
+	got := []Trip{}
 
-	row := statement.QueryRow()
+	for statement.Next() {
+		var r Trip
+		err = statement.Scan(&r.Id, &r.Name, &r.RecordedTimeStamp)
 
-	err = row.Scan(&ID, &Name, &RecordedTimeStamp)
+		if err != nil {
+			log.Fatal("Error scanning:", err.Error())
+		}
 
-	if err != nil {
-		log.Fatal("Scan failed: ", err.Error())
+		got = append(got, r)
 	}
 
-	returnMessage := fmt.Sprintf("The Id is %s", ID)
+	serializedReturn, _ := json.Marshal(got)
 
-	fmt.Fprintf(w, returnMessage)
-
-	// fmt.Fprintf(w, userId)
+	fmt.Fprintf(w, string(serializedReturn))
 }
