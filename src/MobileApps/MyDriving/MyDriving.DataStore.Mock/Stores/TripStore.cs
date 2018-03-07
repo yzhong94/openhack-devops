@@ -219,7 +219,8 @@ namespace MyDriving.DataStore.Mock.Stores
             {
                 item.Rating = _random.Next(30, 100);
                 var point = item.Points.ElementAt(item.Points.Count / 2);
-                if (Logger.BingMapsAPIKey != "____BingMapsAPIKey____")
+                //TODO: Replace Bing Maps API Key with non personal key
+                if (Logger.BingMapsAPIKey != "Ar6iuHZYgX1BrfJs6SRJaXWbpU_HKdoe7G-OO9b2kl3rWvcawYx235GGx5FPM76O")
                 {
                     item.MainPhotoUrl =
                         $"http://dev.virtualearth.net/REST/V1/Imagery/Map/Road/{point.Latitude.ToString(CultureInfo.InvariantCulture)},{point.Longitude.ToString(CultureInfo.InvariantCulture)}/15?mapSize=500,220&key={Logger.BingMapsAPIKey}";

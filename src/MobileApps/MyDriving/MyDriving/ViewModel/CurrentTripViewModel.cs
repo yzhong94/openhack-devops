@@ -230,8 +230,8 @@ namespace MyDriving.ViewModel
                 }
 
                 ProgressDialogManager.LoadProgressDialog("Saving trip...");
-
-                if (Logger.BingMapsAPIKey != "____BingMapsAPIKey____")
+                //TODO: Replace Bing Maps API Key with non personal key
+                if (Logger.BingMapsAPIKey != "Ar6iuHZYgX1BrfJs6SRJaXWbpU_HKdoe7G-OO9b2kl3rWvcawYx235GGx5FPM76O")
                 {
 
                     CurrentTrip.MainPhotoUrl =

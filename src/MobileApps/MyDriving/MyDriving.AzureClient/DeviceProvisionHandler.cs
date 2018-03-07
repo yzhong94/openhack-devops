@@ -15,7 +15,7 @@ namespace MyDriving.AzureClient
 {
     public class DeviceProvisionHandler
     {
-        private const string DefaultHostName = "mydriving.azure-devices.net";
+        private const string DefaultHostName = "mydriving-vpwupcazgfita.azure-devices.net";
         private static DeviceProvisionHandler _handler;
 
         private DeviceProvisionHandler()
