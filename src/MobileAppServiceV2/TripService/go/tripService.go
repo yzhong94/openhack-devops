@@ -141,18 +141,31 @@ func DeleteTrip(w http.ResponseWriter, r *http.Request) {
 
 	defer conn.Close()
 
+	deleteTripPointsQuery := fmt.Sprintf("DELETE FROM TripPoints WHERE TripId = '%s'", tripId)
 	deleteTripsQuery := fmt.Sprintf("DELETE FROM Trips WHERE Id = '%s'", tripId)
 
-	statement, err := conn.Prepare(deleteTripsQuery)
+	deleteTripPointsStatement, err := conn.Prepare(deleteTripPointsQuery)
 
 	if err != nil {
-		log.Fatal("Error preparing to delete a Trip: ", err.Error())
+		log.Fatal("Error preparing to delete a Trip point: ", err.Error())
 	}
 
-	result, err := statement.Exec()
+	result, err := deleteTripPointsStatement.Exec()
 
 	if err != nil {
-		log.Fatal("Error while deleting a trip: ", err.Error())
+		log.Fatal("Error while deleting a trip point: ", err.Error())
+	}
+
+	deleteTripsStatement, err := conn.Prepare(deleteTripsQuery)
+
+	if err != nil {
+		log.Fatal("Error while preparing to delete the trip:", err.Error())
+	}
+
+	result, err = deleteTripsStatement.Exec()
+
+	if err != nil {
+		log.Fatal("Error while deleting the trip: ", err.Error())
 	}
 
 	serializedResult, _ := json.Marshal(result)
