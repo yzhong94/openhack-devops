@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -171,4 +172,26 @@ func DeleteTrip(w http.ResponseWriter, r *http.Request) {
 	serializedResult, _ := json.Marshal(result)
 
 	fmt.Fprintf(w, string(serializedResult))
+}
+
+func PatchTrip(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+
+	defer r.Body.Close()
+
+	if err != nil {
+		log.Fatal("Error while reading request body ", err.Error())
+	}
+
+	var trip Trip
+
+	err = json.Unmarshal(body, &trip)
+
+	if err != nil {
+		log.Fatal("Error while decoding json ", err.Error())
+	}
+
+	output := fmt.Sprintf("This is the Fuel Used: %f", trip.FuelUsed)
+
+	fmt.Fprintf(w, output)
 }

@@ -67,6 +67,13 @@ var routes = Routes{
 	},
 
 	Route{
+		"PatchTrip",
+		"PATCH",
+		"/v1/PatchTrip",
+		PatchTrip,
+	},
+
+	Route{
 		"Tenantsget",
 		"GET",
 		"/v1/tenants",
