@@ -12,5 +12,6 @@ namespace MyDriving.ServiceObjects
         public double Longitude { get; set; }
         public POIType POIType { get; set; }
         public DateTime Timestamp { get; set; }
+        public bool Deleted { get; set; }
     }
 }

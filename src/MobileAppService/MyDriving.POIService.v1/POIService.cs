@@ -30,7 +30,7 @@ namespace MyDriving.POIService.v1
             // Set name to query string or body data
             tripId = tripId ?? data?.tripId;
 
-            List<POI> POIList; 
+            List<POI> POIList;
 
             using (var context = new MyDrivingContext())
             {
@@ -44,5 +44,7 @@ namespace MyDriving.POIService.v1
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
             };
         }
+
+        public static string HealthCheck() => "ok";
     }
 }
