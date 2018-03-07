@@ -5,7 +5,7 @@
 	<key>CFBundleDisplayName</key>
 	<string>MyDriving</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.microsoft.mydriving</string>
+	<string>com.ensobyte.mydriving</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0.1</string>
 	<key>CFBundleVersion</key>
@@ -13,7 +13,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>MinimumOSVersion</key>
-	<string>9.0</string>
+	<string>11.2</string>
 	<key>UIDeviceFamily</key>
 	<array>
 		<integer>1</integer>
@@ -27,6 +27,7 @@
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>
+		<string>gamekit</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
@@ -53,6 +54,8 @@
 	</array>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Track your current trip even when MyTrip isn&apos;t running.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Your message goes here</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -60,5 +63,20 @@
 	</dict>
 	<key>CFBundleName</key>
 	<string>MyDriving</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>MKDirectionsRequest</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.apple.maps.directionsrequest</string>
+			</array>
+		</dict>
+	</array>
+	<key>MKDirectionsApplicationSupportedModes</key>
+	<array>
+		<string>MKDirectionsModeCar</string>
+	</array>
 </dict>
 </plist>

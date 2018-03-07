@@ -1,6 +1,6 @@
 // WARNING
 //
-// This file has been generated automatically by Xamarin Studio from the outlets and
+// This file has been generated automatically by Visual Studio from the outlets and
 // actions declared in your storyboard file.
 // Manual changes to this file will not be maintained.
 //
@@ -18,10 +18,6 @@ namespace MyDriving.iOS
         [GeneratedCode ("iOS Designer", "1.0")]
         UIKit.UITextField settingTextField { get; set; }
 
-        [Action ("SettingTextFieldValue_Changed:")]
-        [GeneratedCode ("iOS Designer", "1.0")]
-        partial void SettingTextFieldValue_Changed (UIKit.UITextField sender);
-
         [Action ("EditingBegan:")]
         [GeneratedCode ("iOS Designer", "1.0")]
         partial void EditingBegan (UIKit.UITextField sender);
@@ -29,6 +25,10 @@ namespace MyDriving.iOS
         [Action ("EditingEnded:")]
         [GeneratedCode ("iOS Designer", "1.0")]
         partial void EditingEnded (UIKit.UITextField sender);
+
+        [Action ("SettingTextFieldValue_Changed:")]
+        [GeneratedCode ("iOS Designer", "1.0")]
+        partial void SettingTextFieldValue_Changed (UIKit.UITextField sender);
 
         void ReleaseDesignerOutlets ()
         {

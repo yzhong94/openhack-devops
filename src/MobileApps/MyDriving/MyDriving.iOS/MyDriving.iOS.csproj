@@ -21,27 +21,29 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
-    <MtouchArch>i386</MtouchArch>
+    <MtouchArch>x86_64</MtouchArch>
     <MtouchLink>None</MtouchLink>
     <MtouchDebug>true</MtouchDebug>
-    <MtouchProfiling>true</MtouchProfiling>
-    <CodesignKey>iPhone Developer</CodesignKey>
-    <CodesignProvision>
-    </CodesignProvision>
+    <CodesignKey>iPhone Developer: Brent Samodien (KM9FKE675T)</CodesignKey>
+    <CodesignProvision>VS: com.ensobyte.mydriving Development</CodesignProvision>
     <CodesignExtraArgs>
     </CodesignExtraArgs>
+    <MtouchSdkVersion>11.2</MtouchSdkVersion>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
-    <DebugType>full</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\iPhone\Release</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
-    <MtouchArch>ARMv7, ARM64</MtouchArch>
+    <MtouchArch>ARM64</MtouchArch>
     <ConsolePause>false</ConsolePause>
-    <CodesignKey>iPhone Distribution</CodesignKey>
+    <CodesignKey>iPhone Developer: Brent Samodien (KM9FKE675T)</CodesignKey>
     <BuildIpa>true</BuildIpa>
+    <AssemblyOriginatorKeyFile>..\..\..\..\..\..\Downloads\MyDrivingDevProfile.mobileprovision</AssemblyOriginatorKeyFile>
+    <PlatformTarget>x64</PlatformTarget>
+    <CodesignProvision>VS: com.ensobyte.mydriving Development</CodesignProvision>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
     <DebugType>full</DebugType>
@@ -52,9 +54,8 @@
     <MtouchArch>i386</MtouchArch>
     <ConsolePause>false</ConsolePause>
     <MtouchLink>None</MtouchLink>
-    <CodesignKey>iPhone Distribution</CodesignKey>
-    <CodesignProvision>
-    </CodesignProvision>
+    <CodesignKey>iPhone Developer: Brent Samodien (KM9FKE675T)</CodesignKey>
+    <CodesignProvision>VS: com.ensobyte.mydriving Development</CodesignProvision>
     <CodesignExtraArgs>
     </CodesignExtraArgs>
   </PropertyGroup>
@@ -67,20 +68,22 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
-    <MtouchArch>ARMv7, ARM64</MtouchArch>
+    <MtouchArch>ARM64</MtouchArch>
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
-    <MtouchProfiling>true</MtouchProfiling>
-    <CodesignKey>iPhone Developer</CodesignKey>
+    <CodesignKey>iPhone Developer: Brent Samodien (KM9FKE675T)</CodesignKey>
     <MtouchDebug>true</MtouchDebug>
     <BuildIpa>true</BuildIpa>
+    <CodesignProvision>VS: com.ensobyte.mydriving Development</CodesignProvision>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'XTC|AnyCPU' ">
     <Optimize>false</Optimize>
     <OutputPath>bin\XTC</OutputPath>
     <DefineConstants>XTC</DefineConstants>
     <WarningLevel>4</WarningLevel>
-    <MtouchUseRefCounting>true</MtouchUseRefCounting>
     <MtouchArch>ARMv7</MtouchArch>
+    <CodesignProvision>VS: com.ensobyte.mydriving Development</CodesignProvision>
+    <CodesignKey>iPhone Developer: Brent Samodien (KM9FKE675T)</CodesignKey>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'XTC|iPhone'">
     <DefineConstants>__UNIFIED__;__MOBILE__;__IOS__;XTC</DefineConstants>
@@ -91,8 +94,10 @@
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
     <MtouchArch>ARMv7, ARM64</MtouchArch>
     <ConsolePause>false</ConsolePause>
-    <CodesignKey>iPhone Distribution</CodesignKey>
+    <CodesignKey>iPhone Developer: Brent Samodien (KM9FKE675T)</CodesignKey>
     <BuildIpa>true</BuildIpa>
+    <CodesignProvision>VS: com.ensobyte.mydriving Development</CodesignProvision>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'XTC|iPhoneSimulator'">
     <DefineConstants>__UNIFIED__;__MOBILE__;__IOS__;XTC</DefineConstants>
@@ -104,6 +109,8 @@
     <MtouchArch>i386</MtouchArch>
     <ConsolePause>false</ConsolePause>
     <MtouchLink>None</MtouchLink>
+    <CodesignProvision>VS: com.ensobyte.mydriving Development</CodesignProvision>
+    <CodesignKey>iPhone Developer: Brent Samodien (KM9FKE675T)</CodesignKey>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Calabash">
