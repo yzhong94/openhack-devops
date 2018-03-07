@@ -123,3 +123,39 @@ func GetAllTrips(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintf(w, string(serializedReturn))
 }
+
+func DeleteTrip(w http.ResponseWriter, r *http.Request) {
+	tripId := r.FormValue("id")
+
+	connString := fmt.Sprintf("server=%s;database=%s;user id=%s;password=%s;port=%d", *server, *database, *user, *password, *port)
+
+	if *debug {
+		fmt.Printf("connString:%s\n", connString)
+	}
+
+	conn, err := sql.Open("mssql", connString)
+
+	if err != nil {
+		log.Fatal("Failed to connect to the database: ", err.Error())
+	}
+
+	defer conn.Close()
+
+	deleteTripsQuery := fmt.Sprintf("DELETE FROM Trips WHERE Id = '%s'", tripId)
+
+	statement, err := conn.Prepare(deleteTripsQuery)
+
+	if err != nil {
+		log.Fatal("Error preparing to delete a Trip: ", err.Error())
+	}
+
+	result, err := statement.Exec()
+
+	if err != nil {
+		log.Fatal("Error while deleting a trip: ", err.Error())
+	}
+
+	serializedResult, _ := json.Marshal(result)
+
+	fmt.Fprintf(w, string(serializedResult))
+}

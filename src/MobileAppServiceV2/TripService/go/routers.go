@@ -53,6 +53,13 @@ var routes = Routes{
 	},
 
 	Route{
+		"DeleteTrip",
+		"DELETE",
+		"/v1/DeleteTrip",
+		DeleteTrip,
+	},
+
+	Route{
 		"GetAllTrips",
 		"GET",
 		"/v1/GetAllTrips",
