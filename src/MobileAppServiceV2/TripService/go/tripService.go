@@ -54,7 +54,7 @@ func GetAllTrips(w http.ResponseWriter, r *http.Request) {
 
 	defer conn.Close()
 
-	query := "SELECT Id, Name, RecordedTimeStamp FROM Trips WHERE UserId LIKE '%" + userId + "'"
+	query := "SELECT Id, Name, UserId, RecordedTimeStamp, EndTimeStamp, Rating, IsComplete, HasSimulatedOBDData, AverageSpeed, FuelUsed, HardStops, HardAccelerations, MainPhotoUrl, Distance FROM Trips WHERE UserId LIKE '%" + userId + "'"
 
 	statement, err := conn.Query(query)
 
@@ -68,7 +68,7 @@ func GetAllTrips(w http.ResponseWriter, r *http.Request) {
 
 	for statement.Next() {
 		var r Trip
-		err = statement.Scan(&r.Id, &r.Name, &r.RecordedTimeStamp)
+		err = statement.Scan(&r.Id, &r.Name, &r.UserId, &r.RecordedTimeStamp, &r.EndTimeStamp, &r.Rating, &r.IsComplete, &r.HasSimulatedOBDData, &r.AverageSpeed, &r.FuelUsed, &r.HardStops, &r.HardAccelerations, &r.MainPhotoUrl, &r.Distance)
 
 		if err != nil {
 			log.Fatal("Error scanning:", err.Error())
