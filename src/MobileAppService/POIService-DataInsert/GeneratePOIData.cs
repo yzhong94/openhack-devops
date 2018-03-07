@@ -39,31 +39,6 @@ namespace MyDriving.POIService.v1
             }
         }
 
-
-        //private static string GetSQLCommand(string TripId)
-        //{
-        //    return "DECLARE @datetimeoffset datetimeoffset(7) = '" + DateTime.Now.ToString() + "'" +
-        //        "INSERT INTO [dbo].[POIs]" +
-        //               "([TripId]" +
-        //               ",[Latitude]" +
-        //               ",[Longitude]" +
-        //               ",[POIType]" +
-        //               ",[RecordedTimeStamp]" +
-        //               ",[CreatedAt]" +
-        //               ",[UpdatedAt]" +
-        //               ",[Deleted]" +
-        //               ",[Timestamp])" +
-        //                 "VALUES('" + TripId.ToString() + "'" +
-        //                 ", " + GetLatitude(516400146, 630304598) +
-        //                  "," + GetLongitude(224464416, 341194152) +
-        //                 ", 1" +
-        //                 ", '" + DateTime.Now.ToString() + "'" +
-        //                 ", '" + DateTime.Now.ToString() + "'" +
-        //                 ", @datetimeoffset" +
-        //                 ", 0" +
-        //                 ", '" + DateTime.Now.ToString() + "')";
-        //}
-
         #region CORDINATES
         private static int GetLatitude(int From, int To)
         {
