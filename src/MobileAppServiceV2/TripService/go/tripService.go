@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 
 	_ "github.com/denisenkom/go-mssqldb"
 )
@@ -23,17 +24,17 @@ type Trip struct {
 	HasSimulatedOBDData bool
 	AverageSpeed        float64
 	FuelUsed            float64
-	HardStops           float32
-	HardAccelerations   float32
+	HardStops           float64
+	HardAccelerations   float64
 	MainPhotoUrl        string
 	Distance            float64
 }
 
 var (
 	debug         = flag.Bool("debug", false, "enable debugging")
-	password      = flag.String("password", "@windowsPhone10", "the database password")
+	password      = flag.String("password", "MyComplex-Passw0rd", "the database password")
 	port     *int = flag.Int("port", 1433, "the database port")
-	server        = flag.String("server", "mydrivingdbserver-fxw5u47lzepqy.database.windows.net", "the database server")
+	server        = flag.String("server", "mydrivingdbserver-vpwupcazgfita.database.windows.net", "the database server")
 	user          = flag.String("user", "YourUserName", "the database user")
 	database      = flag.String("d", "myDrivingDB", "db_name")
 )
@@ -97,7 +98,7 @@ func GetAllTrips(w http.ResponseWriter, r *http.Request) {
 
 	defer conn.Close()
 
-	query := "SELECT Id, Name, UserId, RecordedTimeStamp, EndTimeStamp, Rating, IsComplete, HasSimulatedOBDData, AverageSpeed, FuelUsed, HardStops, HardAccelerations, MainPhotoUrl, Distance FROM Trips WHERE UserId LIKE '%" + userId + "'"
+	query := "SELECT Id, Name, UserId, RecordedTimeStamp, EndTimeStamp, Rating, IsComplete, HasSimulatedOBDData, AverageSpeed, FuelUsed, HardStops, HardAccelerations, MainPhotoUrl, Distance FROM Trips WHERE UserId LIKE '%" + userId + "' and Deleted = 0"
 
 	statement, err := conn.Query(query)
 
@@ -175,6 +176,7 @@ func DeleteTrip(w http.ResponseWriter, r *http.Request) {
 }
 
 func PatchTrip(w http.ResponseWriter, r *http.Request) {
+	tripId := r.FormValue("id")
 	body, err := ioutil.ReadAll(r.Body)
 
 	defer r.Body.Close()
@@ -191,7 +193,39 @@ func PatchTrip(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("Error while decoding json ", err.Error())
 	}
 
-	output := fmt.Sprintf("This is the Fuel Used: %f", trip.FuelUsed)
+	updateQuery := fmt.Sprintf("UPDATE Trips SET Name = '%s', UserId = '%s', RecordedTimeStamp = '%s', EndTimeStamp = '%s', Rating = %d, IsComplete = '%s', HasSimulatedOBDData = '%s', AverageSpeed = %f, FuelUsed = %s, HardStops = %s, HardAccelerations = %s, MainPhotoUrl = '%s', Distance = %f, UpdatedAt = GETDATE() WHERE Id = '%s'", trip.Name, trip.UserId, trip.RecordedTimeStamp, trip.EndTimeStamp, trip.Rating, strconv.FormatBool(trip.IsComplete), strconv.FormatBool(trip.HasSimulatedOBDData), trip.AverageSpeed, strconv.FormatFloat(trip.FuelUsed, 'f', -1, 64), strconv.FormatFloat(trip.HardStops, 'f', -1, 64), strconv.FormatFloat(trip.HardAccelerations, 'f', -1, 64), trip.MainPhotoUrl, trip.Distance, tripId)
 
-	fmt.Fprintf(w, output)
+	connString := fmt.Sprintf("server=%s;database=%s;user id=%s;password=%s;port=%d", *server, *database, *user, *password, *port)
+
+	if *debug {
+		fmt.Printf("connString:%s\n", connString)
+	}
+
+	conn, err := sql.Open("mssql", connString)
+
+	if err != nil {
+		log.Fatal("Failed to connect to the database: ", err.Error())
+	}
+
+	defer conn.Close()
+
+	patchTripStatement, err := conn.Prepare(updateQuery)
+
+	if err != nil {
+		log.Fatal("Error while preparing to patch the Trip: ", err.Error())
+	}
+
+	result, err := patchTripStatement.Exec()
+
+	if err != nil {
+		log.Fatal("Error while updating the Trip: ", err.Error())
+	}
+
+	serializedResult, _ := json.Marshal(result)
+
+	fmt.Fprintf(w, string(serializedResult))
+
+	// output := fmt.Sprintf("This is the Fuel Used by %s: %f", tripId, trip.FuelUsed)
+
+	// fmt.Fprintf(w, output)
 }

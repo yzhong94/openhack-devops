@@ -68,7 +68,7 @@ var routes = Routes{
 
 	Route{
 		"PatchTrip",
-		"PATCH",
+		"PUT",
 		"/v1/PatchTrip",
 		PatchTrip,
 	},
