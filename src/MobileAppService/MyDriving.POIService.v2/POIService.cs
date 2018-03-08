@@ -19,55 +19,65 @@ namespace MyDriving.POIService.v2
         [FunctionName("GetAllPOIs")]
         public static IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)]HttpRequest req, TraceWriter log, ExecutionContext context)
         {
-            IConfiguration funcConfiguration;
-
-            log.Info("C# HTTP trigger function processed a request.");
-
-            string tripId = req.Query["tripId"];
-
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(context.FunctionAppDirectory)
-                .AddJsonFile("appSettings.json", optional: false, reloadOnChange: true)
-                .AddEnvironmentVariables();
-
-            funcConfiguration = builder.Build();
-
-            var connectionString = funcConfiguration["ConnectionStrings:myDrivingDB"];
-
-            using(var sqlConn = new SqlConnection(connectionString))
+            try
             {
-                sqlConn.Open();
+                log.Info("C# HTTP trigger function processed a request.");
 
-                string query = $"SELECT Id, Deleted, Latitude, Longitude, POIType, Timestamp, TripId FROM POIs WHERE TripId = '{tripId}'";
+                IConfiguration funcConfiguration;
 
-                var sqlCommand = new SqlCommand(query, sqlConn);
+                string tripId = req.Query["tripId"];
 
-                var rows = sqlCommand.ExecuteReader(System.Data.CommandBehavior.CloseConnection);
+                var builder = new ConfigurationBuilder()
+                    .SetBasePath(context.FunctionAppDirectory)
+                    .AddJsonFile("appSettings.json", optional: false, reloadOnChange: true)
+                    .AddEnvironmentVariables();
 
-                if(!rows.HasRows)
-                    return new BadRequestObjectResult("There are no POIs for this Trip.");
+                funcConfiguration = builder.Build();
 
-                List<POI> poiList = new List<POI>();
+                var connectionString = funcConfiguration["ConnectionStrings:myDrivingDB"];
 
-                while (rows.Read())
+                using (var sqlConn = new SqlConnection(connectionString))
                 {
-                    poiList.Add(new POI
+                    sqlConn.Open();
+
+                    string query = $"SELECT Id, Deleted, Latitude, Longitude, POIType, Timestamp, TripId FROM POIs WHERE TripId = '{tripId}'";
+
+                    var sqlCommand = new SqlCommand(query, sqlConn);
+
+                    var rows = sqlCommand.ExecuteReader(System.Data.CommandBehavior.CloseConnection);
+
+                    if (!rows.HasRows)
+                        return new BadRequestObjectResult("There are no POIs for this Trip.");
+
+                    List<POI> poiList = new List<POI>();
+
+                    while (rows.Read())
                     {
-                        Id = rows["Id"].ToString(),
-                        Deleted = bool.Parse(rows["Deleted"].ToString()),
-                        Latitude = double.Parse(rows["Latitude"].ToString()),
-                        Longitude = double.Parse(rows["Longitude"].ToString()),
-                        POIType = rows["POIType"].ToString().Equals("HardAcceleration") ? POIType.HardAcceleration : POIType.HardBrake,
-                        Timestamp = DateTime.Parse(rows["Timestamp"].ToString()),
-                        TripId = rows["TripId"].ToString()
-                    });
+                        poiList.Add(new POI
+                        {
+                            Id = rows["Id"].ToString(),
+                            Deleted = bool.Parse(rows["Deleted"].ToString()),
+                            Latitude = double.Parse(rows["Latitude"].ToString()),
+                            Longitude = double.Parse(rows["Longitude"].ToString()),
+                            POIType = rows["POIType"].ToString().Equals("HardAcceleration") ? POIType.HardAcceleration : POIType.HardBrake,
+                            Timestamp = DateTime.Parse(rows["Timestamp"].ToString()),
+                            TripId = rows["TripId"].ToString()
+                        });
+                    }
+
+                    rows.Close();
+
+                    var poisSerialized = JsonConvert.SerializeObject(poiList);
+
+                    return new OkObjectResult(poisSerialized);
                 }
-
-                rows.Close();
-
-                var poisSerialized = JsonConvert.SerializeObject(poiList);
-
-                return new OkObjectResult(poisSerialized);
+            }
+            catch (Exception exception)
+            {
+                return new OkObjectResult(new {
+                    StackTrace = exception.StackTrace,
+                    Message = exception.Message
+                });
             }
         }
     }
