@@ -28,6 +28,8 @@ type Trip struct {
 	Distance            float64
 }
 
+// Trip Service Methods
+
 func GetTrip(w http.ResponseWriter, r *http.Request) {
 	tripId := r.FormValue("id")
 
@@ -188,3 +190,5 @@ func PostTrip(w http.ResponseWriter, r *http.Request) {
 type NewTrip struct {
 	Id string
 }
+
+// End of Trip Service Methods

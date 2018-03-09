@@ -1,6 +1,14 @@
 package openHackDevOps
 
+import (
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"net/http"
+)
+
 type TripPoint struct {
+	Id                           string
 	TripId                       string
 	Latitude                     float32
 	Longitude                    float32
@@ -17,7 +25,62 @@ type TripPoint struct {
 	EngineLoad                   float32
 	MassFlowRate                 float32
 	EngineFuelRate               float32
-	VIN                          string
-	HasOBDData                   bool
-	HasSimulatedOBDData          bool
+	VIN                          sql.NullString
 }
+
+// TripPoint Service Methods
+
+func GetAllTripPoints(w http.ResponseWriter, r *http.Request) {
+	query := "SELECT [Id], [TripId], [Latitude], [Longitude], [Speed], [RecordedTimeStamp], [Sequence], [RPM], [ShortTermFuelBank], [LongTermFuelBank], [ThrottlePosition], [RelativeThrottlePosition], [Runtime], [DistanceWithMalfunctionLight], [EngineLoad], [EngineFuelRate], [VIN] FROM [dbo].[TripPoints] WHERE Deleted = 0"
+
+	statement, err := ExecuteQuery(query)
+
+	if err != nil {
+		fmt.Fprintf(w, SerializeError(err, "Error while retrieving trip points from database"))
+		return
+	}
+
+	got := []TripPoint{}
+
+	for statement.Next() {
+		var r TripPoint
+		err := statement.Scan(&r.Id, &r.TripId, &r.Latitude, &r.Longitude, &r.Speed, &r.RecordedTimeStamp, &r.Sequence, &r.RPM, &r.ShortTermFuelBank, &r.LongTermFuelBank, &r.ThrottlePosition, &r.RelativeThrottlePosition, &r.Runtime, &r.DistanceWithMalfunctionLight, &r.EngineLoad, &r.EngineFuelRate, &r.VIN)
+
+		if err != nil {
+			fmt.Fprintf(w, SerializeError(err, "Error scanning Trip Points"))
+			return
+		}
+
+		got = append(got, r)
+	}
+
+	serializedReturn, _ := json.Marshal(got)
+
+	fmt.Fprintf(w, string(serializedReturn))
+}
+
+func GetTripPoint(w http.ResponseWriter, r *http.Request) {
+	// tripPointId := r.FormValue("id")
+}
+
+func PostTripPoint(w http.ResponseWriter, r *http.Request) {
+	// userId := r.FormValue("userId")
+
+	// body, err := ioutil.ReadAll(r.Body)
+}
+
+func PatchTripPoint(w http.ResponseWriter, r *http.Request) {
+	// tripPointId := r.FormValue("id")
+
+	// body, err := ioutil.ReadAll(r.Body)
+}
+
+func DeleteTripPoint(w http.ResponseWriter, r *http.Request) {
+	// tripPointId := r.FormValue("id")
+}
+
+func GetMaxSequence(w http.ResponseWriter, r *http.Request) {
+	// tripId = r.FormValue("id")
+}
+
+// End of Trip Point Service Methods

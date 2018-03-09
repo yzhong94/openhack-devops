@@ -38,6 +38,8 @@ func HealthCheck(w http.ResponseWriter, r *http.Request) {
 }
 
 var routes = Routes{
+	// Trip routes
+
 	Route{
 		"HealthCheck",
 		"GET",
@@ -72,18 +74,64 @@ var routes = Routes{
 		"/v1/PatchTrip",
 		PatchTrip,
 	},
+	Route{
+		"PostTrip",
+		"POST",
+		"/v1/PostTrip",
+		PostTrip,
+	},
+
+	// End of Trip routes
+
+	// Trip Point routes
+
+	Route{
+		"HealthCheck",
+		"GET",
+		"/v1/HealthCheck",
+		HealthCheck,
+	},
+
+	Route{
+		"GetTripPoint",
+		"GET",
+		"/v1/GetTripPoint",
+		GetTripPoint,
+	},
+
+	Route{
+		"DeleteTripPoint",
+		"DELETE",
+		"/v1/DeleteTripPoint",
+		DeleteTripPoint,
+	},
+
+	Route{
+		"GetAllTripPoints",
+		"GET",
+		"/v1/GetAllTripPoints",
+		GetAllTripPoints,
+	},
+
+	Route{
+		"PatchTripPoint",
+		"PUT",
+		"/v1/PatchTripPoint",
+		PatchTripPoint,
+	},
+	Route{
+		"PostTripPoint",
+		"POST",
+		"/v1/PostTripPoint",
+		PostTripPoint,
+	},
+
+	// End of Trip Point routes
 
 	Route{
 		"Tenantsget",
 		"GET",
 		"/v1/tenants",
 		Tenantsget,
-	},
-
-	Route{
-		"PostTrip",
-		"POST",
-		"/v1/PostTrip",
-		PostTrip,
 	},
 }
