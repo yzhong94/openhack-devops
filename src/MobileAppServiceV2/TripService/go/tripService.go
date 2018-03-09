@@ -31,12 +31,13 @@ type Trip struct {
 func GetTrip(w http.ResponseWriter, r *http.Request) {
 	tripId := r.FormValue("id")
 
-	query := "SELECT Id, Name, UserId, RecordedTimeStamp, EndTimeStamp, Rating, IsComplete, HasSimulatedOBDData, AverageSpeed, FuelUsed, HardStops, HardAccelerations, MainPhotoUrl, Distance FROM Trips WHERE Id = '" + tripId + "'"
+	query := "SELECT Id, Name, UserId, RecordedTimeStamp, EndTimeStamp, Rating, IsComplete, HasSimulatedOBDData, AverageSpeed, FuelUsed, HardStops, HardAccelerations, MainPhotoUrl, Distance FROM Trips WHERE Id = '" + tripId + "' AND Deleted = 0"
 
 	row, err := FirstOrDefault(query)
 
 	if err != nil {
-		fmt.Fprintf(w, "Error while retrieving trip from database: %s", err.Error())
+		fmt.Fprintf(w, SerializeError(err, "Error while retrieving trip from database"))
+		return
 	}
 
 	var trip Trip
@@ -44,7 +45,7 @@ func GetTrip(w http.ResponseWriter, r *http.Request) {
 	err = row.Scan(&trip.Id, &trip.Name, &trip.UserId, &trip.RecordedTimeStamp, &trip.EndTimeStamp, &trip.Rating, &trip.IsComplete, &trip.HasSimulatedOBDData, &trip.AverageSpeed, &trip.FuelUsed, &trip.HardStops, &trip.HardAccelerations, &trip.MainPhotoUrl, &trip.Distance)
 
 	if err != nil {
-		fmt.Fprintf(w, SerializeError(err))
+		fmt.Fprintf(w, SerializeError(err, "Failed to scan a trip"))
 		return
 	}
 
@@ -61,7 +62,8 @@ func GetAllTrips(w http.ResponseWriter, r *http.Request) {
 	statement, err := ExecuteQuery(query)
 
 	if err != nil {
-		fmt.Fprintf(w, "Error while retrieving trips from database: %s", err.Error())
+		fmt.Fprintf(w, SerializeError(err, "Error while retrieving trips from database"))
+		return
 	}
 
 	got := []Trip{}
@@ -71,7 +73,8 @@ func GetAllTrips(w http.ResponseWriter, r *http.Request) {
 		err := statement.Scan(&r.Id, &r.Name, &r.UserId, &r.RecordedTimeStamp, &r.EndTimeStamp, &r.Rating, &r.IsComplete, &r.HasSimulatedOBDData, &r.AverageSpeed, &r.FuelUsed, &r.HardStops, &r.HardAccelerations, &r.MainPhotoUrl, &r.Distance)
 
 		if err != nil {
-			fmt.Fprintf(w, "Error scanning Trips: %s", err.Error())
+			fmt.Fprintf(w, SerializeError(err, "Error scanning Trips"))
+			return
 		}
 
 		got = append(got, r)
@@ -85,19 +88,24 @@ func GetAllTrips(w http.ResponseWriter, r *http.Request) {
 func DeleteTrip(w http.ResponseWriter, r *http.Request) {
 	tripId := r.FormValue("id")
 
-	deleteTripPointsQuery := fmt.Sprintf("DELETE FROM TripPoints WHERE TripId = '%s'", tripId)
-	deleteTripsQuery := fmt.Sprintf("DELETE FROM Trips WHERE Id = '%s'", tripId)
+	deleteTripPointsQuery := fmt.Sprintf("UPDATE TripPoints SET Deleted = 1 WHERE TripId = '%s'", tripId)
+	deleteTripsQuery := fmt.Sprintf("UPDAte Trips SET Deleted = 1 WHERE Id = '%s'", tripId)
+
+	log.Println(deleteTripPointsQuery)
+	log.Println(deleteTripsQuery)
 
 	result, err := ExecuteNonQuery(deleteTripPointsQuery)
 
 	if err != nil {
-		fmt.Fprintf(w, "Error while deleting trip points from database: %s", err.Error())
+		fmt.Fprintf(w, SerializeError(err, "Error while deleting trip points from database"))
+		return
 	}
 
 	result, err = ExecuteNonQuery(deleteTripsQuery)
 
 	if err != nil {
-		fmt.Fprintf(w, "Error while deleting trip from database: %s", err.Error())
+		fmt.Fprintf(w, SerializeError(err, "Error while deleting trip from database"))
+		return
 	}
 
 	serializedResult, _ := json.Marshal(result)
@@ -112,7 +120,8 @@ func PatchTrip(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	if err != nil {
-		log.Fatal("Error while reading request body ", err.Error())
+		fmt.Fprintf(w, SerializeError(err, "Error while reading request body"))
+		return
 	}
 
 	var trip Trip
@@ -120,7 +129,8 @@ func PatchTrip(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(body, &trip)
 
 	if err != nil {
-		log.Fatal("Error while decoding json ", err.Error())
+		fmt.Fprintf(w, SerializeError(err, "Error while decoding json"))
+		return
 	}
 
 	updateQuery := fmt.Sprintf("UPDATE Trips SET Name = '%s', UserId = '%s', RecordedTimeStamp = '%s', EndTimeStamp = '%s', Rating = %d, IsComplete = '%s', HasSimulatedOBDData = '%s', AverageSpeed = %f, FuelUsed = %s, HardStops = %s, HardAccelerations = %s, MainPhotoUrl = '%s', Distance = %f, UpdatedAt = GETDATE() WHERE Id = '%s'", trip.Name, trip.UserId, trip.RecordedTimeStamp, trip.EndTimeStamp, trip.Rating, strconv.FormatBool(trip.IsComplete), strconv.FormatBool(trip.HasSimulatedOBDData), trip.AverageSpeed, strconv.FormatFloat(trip.FuelUsed, 'f', -1, 64), strconv.FormatFloat(trip.HardStops, 'f', -1, 64), strconv.FormatFloat(trip.HardAccelerations, 'f', -1, 64), trip.MainPhotoUrl, trip.Distance, tripId)
@@ -128,7 +138,8 @@ func PatchTrip(w http.ResponseWriter, r *http.Request) {
 	result, err := ExecuteNonQuery(updateQuery)
 
 	if err != nil {
-		fmt.Fprintf(w, "Error while patching trip on the database: %s", err.Error())
+		fmt.Fprintf(w, SerializeError(err, "Error while patching trip on the database"))
+		return
 	}
 
 	fmt.Fprintf(w, string(result))
@@ -144,7 +155,8 @@ func PostTrip(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(body, &trip)
 
 	if err != nil {
-		log.Fatal("Error while decoding json ", err.Error())
+		fmt.Fprintf(w, SerializeError(err, "Error while decoding json"))
+		return
 	}
 
 	trip.UserId = userId
@@ -156,14 +168,15 @@ func PostTrip(w http.ResponseWriter, r *http.Request) {
 	result, err := ExecuteQuery(insertQuery)
 
 	if err != nil {
-		fmt.Fprintf(w, "Error while inserting trip onto database: %s", err.Error())
+		fmt.Fprintf(w, SerializeError(err, "Error while inserting trip onto database"))
+		return
 	}
 
 	for result.Next() {
 		err = result.Scan(&newTrip.Id)
 
 		if err != nil {
-			fmt.Fprintf(w, "Error while retrieving last id: %s", err.Error())
+			fmt.Fprintf(w, SerializeError(err, "Error while retrieving last id"))
 		}
 	}
 

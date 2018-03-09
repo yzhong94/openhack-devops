@@ -27,7 +27,6 @@ func ExecuteNonQuery(query string) (string, error) {
 
 	if err != nil {
 		return "", err
-		// log.Fatal("Failed to connect to the database: ", err.Error())
 	}
 
 	defer conn.Close()
@@ -36,16 +35,14 @@ func ExecuteNonQuery(query string) (string, error) {
 
 	if err != nil {
 		return "", err
-		// log.Fatal("Failed to query a trip: ", err.Error())
 	}
 
 	defer statement.Close()
 
-	result, err := statement.Query()
+	result, err := statement.Exec()
 
 	if err != nil {
 		return "", err
-		// log.Fatal("Error while running the query: ", err.Error())
 	}
 
 	serializedResult, _ := json.Marshal(result)
