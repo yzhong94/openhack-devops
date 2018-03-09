@@ -60,7 +60,29 @@ func GetAllTripPoints(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetTripPoint(w http.ResponseWriter, r *http.Request) {
-	// tripPointId := r.FormValue("id")
+	tripPointId := r.FormValue("id")
+
+	query := "SELECT [Id], [TripId], [Latitude], [Longitude], [Speed], [RecordedTimeStamp], [Sequence], [RPM], [ShortTermFuelBank], [LongTermFuelBank], [ThrottlePosition], [RelativeThrottlePosition], [Runtime], [DistanceWithMalfunctionLight], [EngineLoad], [EngineFuelRate], [VIN] FROM TripPoints WHERE Id = '" + tripPointId + "' AND Deleted = 0"
+
+	row, err := FirstOrDefault(query)
+
+	if err != nil {
+		fmt.Fprintf(w, SerializeError(err, "Error while retrieving trip point from database"))
+		return
+	}
+
+	var tripPoint TripPoint
+
+	err = row.Scan(&tripPoint.Id, &tripPoint.TripId, &tripPoint.Latitude, &tripPoint.Longitude, &tripPoint.Speed, &tripPoint.RecordedTimeStamp, &tripPoint.Sequence, &tripPoint.RPM, &tripPoint.ShortTermFuelBank, &tripPoint.LongTermFuelBank, &tripPoint.ThrottlePosition, &tripPoint.RelativeThrottlePosition, &tripPoint.Runtime, &tripPoint.DistanceWithMalfunctionLight, &tripPoint.EngineLoad, &tripPoint.EngineFuelRate, &tripPoint.VIN)
+
+	if err != nil {
+		fmt.Fprintf(w, SerializeError(err, "Failed to scan a trip point"))
+		return
+	}
+
+	serializedTripPoint, _ := json.Marshal(tripPoint)
+
+	fmt.Fprintf(w, string(serializedTripPoint))
 }
 
 func PostTripPoint(w http.ResponseWriter, r *http.Request) {
