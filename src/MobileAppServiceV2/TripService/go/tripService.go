@@ -229,3 +229,55 @@ func PatchTrip(w http.ResponseWriter, r *http.Request) {
 
 	// fmt.Fprintf(w, output)
 }
+
+func PostTrip(w http.ResponseWriter, r *http.Request) {
+	userId := r.FormValue("userId")
+
+	body, err := ioutil.ReadAll(r.Body)
+
+	var trip Trip
+
+	err = json.Unmarshal(body, &trip)
+
+	if err != nil {
+		log.Fatal("Error while decoding json ", err.Error())
+	}
+
+	trip.UserId = userId
+
+	insertQuery := fmt.Sprintf("DECLARE @tempReturn TABLE (TripId NVARCHAR(128)); INSERT INTO Trips (Name, UserId, RecordedTimeStamp, EndTimeStamp, Rating, IsComplete, HasSimulatedOBDData, AverageSpeed, FuelUsed, HardStops, HardAccelerations, MainPhotoUrl, Distance, Deleted) OUTPUT Inserted.ID INTO @tempReturn VALUES ('%s', '%s', '%s', '%s', %d, '%s', '%s', %f, '%s', '%s', '%s', '%s', %f, 'false'); SELECT TripId FROM @tempReturn", trip.Name, trip.UserId, trip.RecordedTimeStamp, trip.EndTimeStamp, trip.Rating, strconv.FormatBool(trip.IsComplete), strconv.FormatBool(trip.HasSimulatedOBDData), trip.AverageSpeed, strconv.FormatFloat(trip.FuelUsed, 'f', -1, 64), strconv.FormatFloat(trip.HardStops, 'f', -1, 64), strconv.FormatFloat(trip.HardAccelerations, 'f', -1, 64), trip.MainPhotoUrl, trip.Distance)
+
+	connString := fmt.Sprintf("server=%s;database=%s;user id=%s;password=%s;port=%d", *server, *database, *user, *password, *port)
+
+	conn, err := sql.Open("mssql", connString)
+
+	if err != nil {
+		log.Fatal("Failed to connect to the database: ", err.Error())
+	}
+
+	defer conn.Close()
+
+	insertStatement, err := conn.Prepare(insertQuery)
+
+	if err != nil {
+		log.Fatal("Error while preparing the insert: ", err.Error())
+	}
+
+	result := insertStatement.QueryRow()
+
+	var newTrip NewTrip
+
+	err = result.Scan(&newTrip.Id)
+
+	if err != nil {
+		log.Fatal("Error while retrieving last id: ", err.Error())
+	}
+
+	serializedTrip, _ := json.Marshal(newTrip)
+
+	fmt.Fprintf(w, string(serializedTrip))
+}
+
+type NewTrip struct {
+	Id string
+}

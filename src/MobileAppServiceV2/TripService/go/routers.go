@@ -79,4 +79,11 @@ var routes = Routes{
 		"/v1/tenants",
 		Tenantsget,
 	},
+
+	Route{
+		"PostTrip",
+		"POST",
+		"/v1/PostTrip",
+		PostTrip,
+	},
 }
