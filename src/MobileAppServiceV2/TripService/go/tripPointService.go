@@ -151,9 +151,56 @@ func PostTripPoint(w http.ResponseWriter, r *http.Request) {
 }
 
 func PatchTripPoint(w http.ResponseWriter, r *http.Request) {
-	// tripPointId := r.FormValue("id")
+	tripPointId := r.FormValue("id")
 
-	// body, err := ioutil.ReadAll(r.Body)
+	body, err := ioutil.ReadAll(r.Body)
+
+	defer r.Body.Close()
+
+	if err != nil {
+		fmt.Fprintf(w, SerializeError(err, "Error while reading request body"))
+		return
+	}
+
+	var tripPoint TripPoint
+
+	err = json.Unmarshal(body, &tripPoint)
+
+	if err != nil {
+		fmt.Fprintf(w, SerializeError(err, "Error while decoding json"))
+		return
+	}
+
+	updateQuery := fmt.Sprintf("UPDATE [TripPoints] SET [TripId] = '%s',[Latitude] = '%s',[Longitude] = '%s',[Speed] = '%s',[RecordedTimeStamp] = '%s',[Sequence] = %d,[RPM] = '%s',[ShortTermFuelBank] = '%s',[LongTermFuelBank] = '%s',[ThrottlePosition] = '%s',[RelativeThrottlePosition] = '%s',[Runtime] = '%s',[DistanceWithMalfunctionLight] = '%s',[EngineLoad] = '%s',[MassFlowRate] = '%s',[EngineFuelRate] = '%s',[HasOBDData] = '%s',[HasSimulatedOBDData] = '%s',[VIN] = '%s' WHERE Id = '%s'",
+		tripPoint.TripId,
+		strconv.FormatFloat(tripPoint.Latitude, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.Longitude, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.Speed, 'f', -1, 64),
+		tripPoint.RecordedTimeStamp,
+		tripPoint.Sequence,
+		strconv.FormatFloat(tripPoint.RPM, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.ShortTermFuelBank, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.LongTermFuelBank, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.ThrottlePosition, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.RelativeThrottlePosition, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.Runtime, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.DistanceWithMalfunctionLight, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.EngineLoad, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.MassFlowRate, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.EngineFuelRate, 'f', -1, 64),
+		strconv.FormatBool(tripPoint.HasOBDData),
+		strconv.FormatBool(tripPoint.HasSimulatedOBDData),
+		tripPoint.VIN.String,
+		tripPointId)
+
+	result, err := ExecuteNonQuery(updateQuery)
+
+	if err != nil {
+		fmt.Fprintf(w, SerializeError(err, "Error while patching Trip Point on the database"))
+		return
+	}
+
+	fmt.Fprintf(w, string(result))
 }
 
 func DeleteTripPoint(w http.ResponseWriter, r *http.Request) {
