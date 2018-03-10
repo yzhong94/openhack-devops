@@ -204,7 +204,20 @@ func PatchTripPoint(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteTripPoint(w http.ResponseWriter, r *http.Request) {
-	// tripPointId := r.FormValue("id")
+	tripPointId := r.FormValue("id")
+
+	deleteTripPointQuery := fmt.Sprintf("UPDATE TripPoints SET Deleted = 1 WHERE Id = '%s'", tripPointId)
+
+	result, err := ExecuteNonQuery(deleteTripPointQuery)
+
+	if err != nil {
+		fmt.Fprintf(w, SerializeError(err, "Error while deleting trip point from database"))
+		return
+	}
+
+	serializedResult, _ := json.Marshal(result)
+
+	fmt.Fprintf(w, string(serializedResult))
 }
 
 func GetMaxSequence(w http.ResponseWriter, r *http.Request) {
