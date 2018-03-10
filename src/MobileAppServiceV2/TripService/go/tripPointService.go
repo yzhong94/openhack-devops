@@ -4,28 +4,32 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"strconv"
 )
 
 type TripPoint struct {
 	Id                           string
 	TripId                       string
-	Latitude                     float32
-	Longitude                    float32
-	Speed                        float32
+	Latitude                     float64
+	Longitude                    float64
+	Speed                        float64
 	RecordedTimeStamp            string
 	Sequence                     int
-	RPM                          float32
-	ShortTermFuelBank            float32
-	LongTermFuelBank             float32
-	ThrottlePosition             float32
-	RelativeThrottlePosition     float32
-	Runtime                      float32
-	DistanceWithMalfunctionLight float32
-	EngineLoad                   float32
-	MassFlowRate                 float32
-	EngineFuelRate               float32
+	RPM                          float64
+	ShortTermFuelBank            float64
+	LongTermFuelBank             float64
+	ThrottlePosition             float64
+	RelativeThrottlePosition     float64
+	Runtime                      float64
+	DistanceWithMalfunctionLight float64
+	EngineLoad                   float64
+	MassFlowRate                 float64
+	EngineFuelRate               float64
 	VIN                          sql.NullString
+	HasOBDData                   bool
+	HasSimulatedOBDData          bool
 }
 
 // TripPoint Service Methods
@@ -86,9 +90,64 @@ func GetTripPoint(w http.ResponseWriter, r *http.Request) {
 }
 
 func PostTripPoint(w http.ResponseWriter, r *http.Request) {
-	// userId := r.FormValue("userId")
+	tripId := r.FormValue("tripId")
 
-	// body, err := ioutil.ReadAll(r.Body)
+	body, err := ioutil.ReadAll(r.Body)
+
+	var tripPoint TripPoint
+
+	err = json.Unmarshal(body, &tripPoint)
+
+	if err != nil {
+		fmt.Fprintf(w, SerializeError(err, "Error while decoding json"))
+		return
+	}
+
+	tripPoint.TripId = tripId
+
+	insertQuery := fmt.Sprintf("DECLARE @tempReturn TABLE (TripPointId NVARCHAR(128)); INSERT INTO TripPoints ([TripId], [Latitude], [Longitude], [Speed], [RecordedTimeStamp], [Sequence], [RPM], [ShortTermFuelBank], [LongTermFuelBank], [ThrottlePosition], [RelativeThrottlePosition], [Runtime], [DistanceWithMalfunctionLight], [EngineLoad], [EngineFuelRate], [MassFlowRate], [HasOBDData], [HasSimulatedOBDData], [VIN], [Deleted]) OUTPUT Inserted.ID INTO @tempReturn VALUES ('%s', '%s', '%s', '%s', '%s', %d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', 'false'); SELECT TripPointId FROM @tempReturn",
+		tripPoint.TripId,
+		strconv.FormatFloat(tripPoint.Latitude, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.Longitude, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.Speed, 'f', -1, 64),
+		tripPoint.RecordedTimeStamp,
+		tripPoint.Sequence,
+		strconv.FormatFloat(tripPoint.RPM, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.ShortTermFuelBank, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.LongTermFuelBank, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.ThrottlePosition, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.RelativeThrottlePosition, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.Runtime, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.DistanceWithMalfunctionLight, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.EngineLoad, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.MassFlowRate, 'f', -1, 64),
+		strconv.FormatFloat(tripPoint.EngineFuelRate, 'f', -1, 64),
+		strconv.FormatBool(tripPoint.HasOBDData),
+		strconv.FormatBool(tripPoint.HasSimulatedOBDData),
+		tripPoint.VIN.String)
+
+	fmt.Fprintf(w, insertQuery)
+
+	// var newTripPoint NewTripPoint
+
+	// result, err := ExecuteQuery(insertQuery)
+
+	// if err != nil {
+	// 	fmt.Fprintf(w, SerializeError(err, "Error while inserting Trip Point onto database"))
+	// 	return
+	// }
+
+	// for result.Next() {
+	// 	err = result.Scan(&newTripPoint.Id)
+
+	// 	if err != nil {
+	// 		fmt.Fprintf(w, SerializeError(err, "Error while retrieving last id"))
+	// 	}
+	// }
+
+	// serializedTripPoint, _ := json.Marshal(newTripPoint)
+
+	// fmt.Fprintf(w, string(serializedTripPoint))
 }
 
 func PatchTripPoint(w http.ResponseWriter, r *http.Request) {
@@ -106,3 +165,7 @@ func GetMaxSequence(w http.ResponseWriter, r *http.Request) {
 }
 
 // End of Trip Point Service Methods
+
+type NewTripPoint struct {
+	Id string
+}
