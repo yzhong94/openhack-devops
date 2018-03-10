@@ -221,7 +221,27 @@ func DeleteTripPoint(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetMaxSequence(w http.ResponseWriter, r *http.Request) {
-	// tripId = r.FormValue("id")
+	tripId := r.FormValue("id")
+
+	query := fmt.Sprintf("SELECT MAX(Sequence) as MaxSequence FROM TripPoints where tripid = '%s'", tripId)
+
+	row, err := FirstOrDefault(query)
+
+	if err != nil {
+		fmt.Fprintf(w, SerializeError(err, "Error while querying Max Sequence"))
+		return
+	}
+
+	var MaxSequence string
+
+	err = row.Scan(&MaxSequence)
+
+	if err != nil {
+		fmt.Fprintf(w, SerializeError(err, "Error while obtaining max sequence"))
+		return
+	}
+
+	fmt.Fprintf(w, MaxSequence)
 }
 
 // End of Trip Point Service Methods

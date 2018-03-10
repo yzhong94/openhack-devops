@@ -125,6 +125,12 @@ var routes = Routes{
 		"/v1/PostTripPoint",
 		PostTripPoint,
 	},
+	Route{
+		"GetMaxSequence",
+		"GET",
+		"/v1/GetMaxSequence",
+		GetMaxSequence,
+	},
 
 	// End of Trip Point routes
 
