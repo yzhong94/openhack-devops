@@ -1,0 +1,92 @@
+---
+swagger: "2.0"
+info:
+  description: "API for the user profile in the My Driving example app. https://github.com/Azure-Samples/openhack-devops"
+  version: "0.1.0"
+  title: "My Driving User Profile API"
+host: "myazurek8slbname.cloudapp.net"
+basePath: "/tables"
+schemes:
+- "https"
+consumes:
+- "application/json"
+produces:
+- "application/json"
+paths:
+  /UserProfile:
+    get:
+      description: "List all profiles"
+      operationId: "userProfileGET"
+      parameters: []
+      responses:
+        200:
+          description: "List of profiles"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Profile"
+        default:
+          description: "An error occurred"
+          schema:
+            $ref: "#/definitions/inline_response_default"
+      x-swagger-router-controller: "Default"
+    post:
+      description: "Declares and creates a new profile"
+      operationId: "userProfilePOST"
+      parameters:
+      - in: "body"
+        name: "_profile"
+        description: "Details of the profile"
+        required: true
+        schema:
+          $ref: "#/definitions/Profile"
+      responses:
+        201:
+          description: "Creation successful"
+          schema:
+            $ref: "#/definitions/Profile"
+          headers:
+            location:
+              type: "string"
+        default:
+          description: "An error occurred"
+          schema:
+            $ref: "#/definitions/inline_response_default"
+      x-swagger-router-controller: "Default"
+definitions:
+  Profile:
+    type: "object"
+    properties:
+      userId:
+        type: "string"
+        description: "User's unique identity"
+      createdAt:
+        type: "string"
+        format: "date"
+      updatedAt:
+        type: "string"
+        format: "date"
+      profilePictureUri:
+        type: "string"
+        format: "binary"
+        description: "User's Profile picture"
+      firstName:
+        type: "string"
+        minLength: 0
+        maxLength: 45
+        pattern: "^[A-Za-z \0-\x7f][a-zA-Z \0-\x7f]*$"
+      lastName:
+        type: "string"
+        minLength: 0
+        maxLength: 45
+        pattern: "^[A-Za-z \0-\x7f][a-zA-Z \0-\x7f]*$"
+  inline_response_default:
+    required:
+    - "message"
+    - "status"
+    properties:
+      status:
+        type: "integer"
+        format: "int32"
+      message:
+        type: "string"

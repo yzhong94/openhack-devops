@@ -1,0 +1,19 @@
+{
+  "name": "my-driving-user-profile-api",
+  "version": "0.1.0",
+  "description": "API for the user profile in the My Driving example app. https://github.com/Azure-Samples/openhack-devops",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "swagger"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "connect": "^3.6.6",
+    "js-yaml": "^3.11.0",
+    "mssql": "4.1.0",
+    "swagger-tools": "0.10.3"
+  }
+}
