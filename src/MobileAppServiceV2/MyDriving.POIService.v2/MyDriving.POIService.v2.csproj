@@ -4,7 +4,7 @@
     <AzureFunctionsVersion>v2</AzureFunctionsVersion>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="appsettings.json" />
+    <None Remove="appSettings.json" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="appSettings.json">
