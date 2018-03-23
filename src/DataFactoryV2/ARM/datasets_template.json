@@ -1,0 +1,737 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "baseName": {
+            "type": "string",
+            "defaultValue": "mydriving"
+        },
+        "baseNameDf": {
+            "type": "string",
+            "defaultValue": "rgtest"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "East US"
+        },
+        "dataFactoryApiVersion": {
+            "type": "string",
+            "defaultValue": "2017-09-01-preview"
+        }
+    },
+    "variables": {
+        "dataFactoryName": "[concat(parameters('baseNameDf'), 'df', uniquestring(resourceGroup().id))]",
+        "datasetAMLiLearner": "AMLiLearnerDataset",
+        "datasetDimUserBlob": "DimUserBlob",
+        "datasetDimUserSql": "DimUserSQL",
+        "datasetDimUserTempSql": "DimUserTempSQL",
+        "datasetFactTripDataBlob": "FactTripDataBlob",
+        "datasetFactTripDataSql": "FactTripDataSQL",
+        "datasetFactTripDataTempSql": "FactTripDataTempSQL",
+        "datasetFactTripMLDataMobileSql": "FactTripMLDataMobileSQL",
+        "datasetFactTripMLDataSql": "FactTripMLDataSQL",
+        "datasetFactTripMLInputDataBlob": "FactTripMLInputDataBlob",
+        "datasetFactTripMLOutputDataBlob": "FactTripMLOutputDataBlob",
+        "datasetMyDrivingRawDataBlob": "MyDrivingRawDataBlob",
+        "datasetRawDataOneSecAggregated": "RawDataOneSecAggregated",
+        "datasetTempIntermediateBlob": "TempIntermediateDatasetBlob",
+        "datasetTempIntermediate2Blob": "TempIntermediateDataset2Blob",
+        "datasetTempIntermediate3Blob": "TempIntermediateDataset3Blob",
+        "datasetFinalTempSql": "FinalTempDataSetSql",
+        "storageAsaLinkedServiceName": "AzureStorageLinkedService",
+        "sqlAnalyticsLinkedServiceName": "AzureSqlLinkedService",
+        "sqlMobileAppLinkedServiceName": "MobileAppSqlLinkedService",
+        "rawDataContainerName": "rawdata",
+        "tripdataContainerName": "tripdata",
+        "referenceContainerName": "reference"
+    },
+    "resources": [{
+        "name": "[variables('dataFactoryName')]",
+        "apiVersion": "[parameters('dataFactoryApiVersion')]",
+        "type": "Microsoft.DataFactory/factories",
+        "location": "[parameters('location')]",
+        "resources": [{
+                "apiVersion": "2017-09-01-preview",
+                "comments": "Dataset: AML-iLearnerDataset",
+                "type": "datasets",
+                "name": "[variables('datasetAMLiLearner')]",
+                "properties": {
+                    "type": "AzureBlob",
+                    "typeProperties": {
+                        "fileName": "model.ilearner",
+                        "folderPath": "reference/AMLiLearner",
+                        "format": {
+                            "type": "TextFormat",
+                            "rowDelimiter": "\n",
+                            "columnDelimiter": ","
+                        }
+                    },
+                    "linkedServiceName": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "[variables('storageAsaLinkedServiceName')]"
+                    }
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "2017-09-01-preview",
+                "comments": "Dataset: DimUser-Blob",
+                "type": "datasets",
+                "name": "[variables('datasetDimUserBlob')]",
+                "properties": {
+                    "type": "AzureBlob",
+                    "typeProperties": {
+                        "folderPath": "tripdata/tables/dimUser",
+                        "format": {
+                            "type": "TextFormat",
+                            "rowDelimiter": "\n",
+                            "columnDelimiter": "|"
+                        }
+                    },
+                    "linkedServiceName": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "[variables('storageAsaLinkedServiceName')]"
+                    },
+                    "structure": [{
+                            "name": "userId",
+                            "type": "String"
+                        },
+                        {
+                            "name": "vin",
+                            "type": "Int32"
+                        }
+                    ]
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "2017-09-01-preview",
+                "comments": "Dataset: DimUser-SQL",
+                "type": "datasets",
+                "name": "[variables('datasetDimUserSql')]",
+                "properties": {
+                    "type": "AzureSqlTable",
+                    "typeProperties": {
+                        "tableName": "dbo.dimUser"
+                    },
+                    "linkedServiceName": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "[variables('sqlAnalyticsLinkedServiceName')]"
+                    },
+                    "structure": [{
+                            "name": "userId",
+                            "type": "String"
+                        },
+                        {
+                            "name": "vin",
+                            "type": "Int32"
+                        }
+                    ]
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "2017-09-01-preview",
+                "comments": "Dataset: DimUserTemp-SQL",
+                "type": "datasets",
+                "name": "[variables('datasetDimUserTempSql')]",
+                "properties": {
+                    "type": "AzureSqlTable",
+                    "typeProperties": {
+                        "tableName": "dbo.dimUserTemp"
+                    },
+                    "linkedServiceName": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "[variables('sqlAnalyticsLinkedServiceName')]"
+                    },
+                    "structure": [{
+                            "name": "userId",
+                            "type": "String"
+                        },
+                        {
+                            "name": "vin",
+                            "type": "Int32"
+                        }
+                    ]
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "2017-09-01-preview",
+                "comments": "Dataset: FactTripData-Blob",
+                "type": "datasets",
+                "name": "[variables('datasetFactTripDataBlob')]",
+                "properties": {
+                    "type": "AzureBlob",
+                    "typeProperties": {
+                        "folderPath": "tripdata/tables/factTripDataoutput",
+                        "format": {
+                            "type": "TextFormat",
+                            "rowDelimiter": "\n",
+                            "columnDelimiter": "|"
+                        }
+                    },
+                    "linkedServiceName": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "[variables('storageAsaLinkedServiceName')]"
+                    },
+                    "structure": [{
+                            "name": "TripId",
+                            "type": "String"
+                        },
+                        {
+                            "name": "UserId",
+                            "type": "String"
+                        },
+                        {
+                            "name": "vin",
+                            "type": "String"
+                        },
+                        {
+                            "name": "tripStartTime",
+                            "type": "String"
+                        },
+                        {
+                            "name": "AverageSpeed",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "Hard_Accel",
+                            "type": "Int32"
+                        },
+                        {
+                            "name": "Hard_Brakes",
+                            "type": "Int32"
+                        },
+                        {
+                            "name": "DroveWithMILOn",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "LengthOfTrip",
+                            "type": "Timespan"
+                        },
+                        {
+                            "name": "cLat",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "cLon",
+                            "type": "Double"
+                        }
+                    ]
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "2017-09-01-preview",
+                "comments": "Dataset: FactTripData-SQL",
+                "type": "datasets",
+                "name": "[variables('datasetFactTripDataSql')]",
+                "properties": {
+                    "type": "AzureSqlTable",
+                    "typeProperties": {
+                        "tableName": "dbo.factTripData"
+                    },
+                    "linkedServiceName": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "[variables('sqlAnalyticsLinkedServiceName')]"
+                    },
+                    "structure": [{
+                            "name": "TripId",
+                            "type": "String"
+                        },
+                        {
+                            "name": "UserId",
+                            "type": "String"
+                        },
+                        {
+                            "name": "vin",
+                            "type": "String"
+                        },
+                        {
+                            "name": "tripStartTime",
+                            "type": "String"
+                        },
+                        {
+                            "name": "AverageSpeed",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "Hard_Accel",
+                            "type": "Int32"
+                        },
+                        {
+                            "name": "Hard_Brakes",
+                            "type": "Int32"
+                        },
+                        {
+                            "name": "DroveWithMILOn",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "LengthOfTrip",
+                            "type": "Timespan"
+                        },
+                        {
+                            "name": "cLat",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "cLon",
+                            "type": "Double"
+                        }
+                    ]
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "2017-09-01-preview",
+                "comments": "Dataset: FactTripDataTemp-SQL",
+                "type": "datasets",
+                "name": "[variables('datasetFactTripDataTempSql')]",
+                "properties": {
+                    "linkedServiceName": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "[variables('sqlAnalyticsLinkedServiceName')]"
+                    },
+                    "structure": [{
+                            "name": "TripId",
+                            "type": "String"
+                        },
+                        {
+                            "name": "UserId",
+                            "type": "String"
+                        },
+                        {
+                            "name": "vin",
+                            "type": "String"
+                        },
+                        {
+                            "name": "tripStartTime",
+                            "type": "String"
+                        },
+                        {
+                            "name": "AverageSpeed",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "Hard_Accel",
+                            "type": "Int32"
+                        },
+                        {
+                            "name": "Hard_Brakes",
+                            "type": "Int32"
+                        },
+                        {
+                            "name": "DroveWithMILOn",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "LengthOfTrip",
+                            "type": "Timespan"
+                        },
+                        {
+                            "name": "cLat",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "cLon",
+                            "type": "Double"
+                        }
+                    ],
+                    "published": false,
+                    "type": "AzureSqlTable",
+                    "typeProperties": {
+                        "tableName": "dbo.factTripDataTemp"
+                    }
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "2017-09-01-preview",
+                "comments": "Dataset: FactTripMLData-MobileSQL",
+                "type": "datasets",
+                "name": "[variables('datasetFactTripMLDataMobileSql')]",
+                "properties": {
+                    "type": "AzureSqlTable",
+                    "typeProperties": {
+                        "tableName": "dbo.factMLOutputData"
+                    },
+                    "linkedServiceName": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "[variables('sqlMobileAppLinkedServiceName')]"
+                    },
+                    "structure": [{
+                            "name": "tripId",
+                            "type": "String"
+                        },
+                        {
+                            "name": "userId",
+                            "type": "String"
+                        },
+                        {
+                            "name": "driverType",
+                            "type": "String"
+                        }
+                    ]
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "2017-09-01-preview",
+                "comments": "Dataset: FactTripMLData-SQL",
+                "type": "datasets",
+                "name": "[variables('datasetFactTripMLDataSql')]",
+                "properties": {
+                    "type": "AzureSqlTable",
+                    "typeProperties": {
+                        "tableName": "dbo.factMLOutputData"
+                    },
+                    "linkedServiceName": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "[variables('sqlAnalyticsLinkedServiceName')]"
+                    },
+                    "structure": [{
+                            "name": "tripId",
+                            "type": "String"
+                        },
+                        {
+                            "name": "userId",
+                            "type": "String"
+                        },
+                        {
+                            "name": "driverType",
+                            "type": "String"
+                        }
+                    ]
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "2017-09-01-preview",
+                "comments": "Dataset: FactTripMLInputData-Blob",
+                "type": "datasets",
+                "name": "[variables('datasetFactTripMLInputDataBlob')]",
+                "properties": {
+                    "type": "AzureBlob",
+                    "linkedServiceName": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "[variables('storageAsaLinkedServiceName')]"
+                    },
+                    "typeProperties": {
+                        "fileName": "inputfile.csv",
+                        "folderPath": "tripdata/tables/mlinput/{Year}/{Month}/{Day}",
+                        "format": {
+                            "type": "TextFormat",
+                            "rowDelimiter": "\n",
+                            "columnDelimiter": ","
+                        },
+                        "partitionedBy": [{
+                                "name": "Year",
+                                "value": {
+                                    "type": "DateTime",
+                                    "date": "SliceStart",
+                                    "format": "yyyy"
+                                }
+                            },
+                            {
+                                "name": "Month",
+                                "value": {
+                                    "type": "DateTime",
+                                    "date": "SliceStart",
+                                    "format": "MM"
+                                }
+                            },
+                            {
+                                "name": "Day",
+                                "value": {
+                                    "type": "DateTime",
+                                    "date": "SliceStart",
+                                    "format": "dd"
+                                }
+                            }
+                        ]
+                    }
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "2017-09-01-preview",
+                "comments": "Dataset: MyDrivingRawData-Blob",
+                "type": "datasets",
+                "name": "[variables('datasetMyDrivingRawDataBlob')]",
+                "properties": {
+                    "type": "AzureBlob",
+                    "linkedServiceName": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "[variables('storageAsaLinkedServiceName')]"
+                    },
+                    "typeProperties": {
+                        "folderPath": "[concat(variables('rawDataContainerName'), '/tripdata/{Year}/{Month}/{Day}')]",
+                        "format": {
+                            "type": "TextFormat",
+                            "rowDelimiter": "\n",
+                            "columnDelimiter": ","
+                        },
+                        "partitionedBy": [{
+                                "name": "Year",
+                                "value": {
+                                    "type": "DateTime",
+                                    "date": "SliceStart",
+                                    "format": "yyyy"
+                                }
+                            },
+                            {
+                                "name": "Month",
+                                "value": {
+                                    "type": "DateTime",
+                                    "date": "SliceStart",
+                                    "format": "MM"
+                                }
+                            },
+                            {
+                                "name": "Day",
+                                "value": {
+                                    "type": "DateTime",
+                                    "date": "SliceStart",
+                                    "format": "dd"
+                                }
+                            }
+                        ]
+                    },
+                    "structure": [{
+                            "name": "TripId",
+                            "type": "String"
+                        },
+                        {
+                            "name": "UserId",
+                            "type": "String"
+                        },
+                        {
+                            "name": "Name",
+                            "type": "String"
+                        },
+                        {
+                            "name": "TripPointId",
+                            "type": "String"
+                        },
+                        {
+                            "name": "Lat",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "Lon",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "Speed",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "RecordedTimeStamp",
+                            "type": "Datetime"
+                        },
+                        {
+                            "name": "Sequence",
+                            "type": "Int32"
+                        },
+                        {
+                            "name": "EngineRPM",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "ShortTermFuelBank",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "LargeTermFuelBank",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "ThrottlePosition",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "RelativeThrottlePosition",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "Runtime",
+                            "type": "Int32"
+                        },
+                        {
+                            "name": "DistancewithMIL",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "EngineLoad",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "MAFFlowRate",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "OutsideTemperature",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "EngineFuelRate",
+                            "type": "Double"
+                        },
+                        {
+                            "name": "vin",
+                            "type": "String"
+                        }
+                    ],
+                    "external": true,
+                    "policy": {}
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "2017-09-01-preview",
+                "comments": "Dataset: RawDataOneSecAggregated",
+                "type": "datasets",
+                "name": "[variables('datasetRawDataOneSecAggregated')]",
+                "properties": {
+                    "type": "AzureBlob",
+                    "linkedServiceName": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "[variables('storageAsaLinkedServiceName')]"
+                    },
+                    "typeProperties": {
+                        "folderPath": "tripdata/tables/onesecagg",
+                        "format": {
+                            "type": "TextFormat"
+                        }
+                    },
+                    "published": false,
+                    "availability": {
+                        "frequency": "Day",
+                        "interval": 1
+                    }
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "2017-09-01-preview",
+                "comments": "Dataset: TempIntermediateDataset2-Blob",
+                "type": "datasets",
+                "name": "[variables('datasetTempIntermediate2Blob')]",
+                "properties": {
+                    "type": "AzureBlob",
+                    "linkedServiceName": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "[variables('storageAsaLinkedServiceName')]"
+                    },
+                    "typeProperties": {
+                        "folderPath": "[concat(variables('rawDataContainerName'), '/intermediatefolder/tempfile-2.txt')]",
+                        "format": {
+                            "type": "TextFormat",
+                            "columnDelimiter": ","
+                        }
+                    }
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "2017-09-01-preview",
+                "comments": "Dataset: TempIntermediateDataset3-Blob",
+                "type": "datasets",
+                "name": "[variables('datasetTempIntermediate3Blob')]",
+                "properties": {
+                    "type": "AzureBlob",
+                    "linkedServiceName": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "[variables('storageAsaLinkedServiceName')]"
+                    },
+                    "typeProperties": {
+                        "folderPath": "[concat(variables('rawDataContainerName'), '/intermediatefolder/tempfile-3.txt')]",
+                        "format": {
+                            "type": "TextFormat",
+                            "columnDelimiter": ","
+                        }
+                    }
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "2017-09-01-preview",
+                "comments": "Dataset: TempIntermediateDataset-Blob",
+                "type": "datasets",
+                "name": "[variables('datasetTempIntermediateBlob')]",
+                "properties": {
+                    "type": "AzureBlob",
+                    "linkedServiceName": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "[variables('storageAsaLinkedServiceName')]"
+                    },
+                    "typeProperties": {
+                        "folderPath": "[concat(variables('rawDataContainerName'), '/intermediatefolder/tempfile.txt')]",
+                        "format": {
+                            "type": "TextFormat",
+                            "columnDelimiter": ","
+                        }
+                    }
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "2017-09-01-preview",
+                "comments": "Dataset: FinalTempDataSet-Sql",
+                "type": "datasets",
+                "name": "[variables('datasetFinalTempSql')]",
+                "properties": {
+                    "linkedServiceName": {
+                        "type": "LinkedServiceReference",
+                        "referenceName": "[variables('sqlAnalyticsLinkedServiceName')]"
+                    },
+                    "structure": [{
+                        "name": "tempCol",
+                        "type": "String"
+                    }],
+                    "published": false,
+                    "type": "AzureSqlTable",
+                    "typeProperties": {
+                        "tableName": "dbo.dimTemp"
+                    }
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            }
+        ]
+    }]
+}

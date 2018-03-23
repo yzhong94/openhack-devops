@@ -1,0 +1,56 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "baseName": {
+            "type": "string",
+            "defaultValue": "rgdfdev"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "East US"
+        },
+        "dataFactoryApiVersion": {
+            "type": "string",
+            "defaultValue": "2017-09-01-preview"
+        }
+    },
+    "variables": {
+        "dataFactoryName": "[concat(parameters('baseName'), 'df', uniquestring(resourceGroup().id))]",
+        "dataFactoryStorageAccountName": "[concat(parameters('baseName'), 'logs',uniquestring(resourceGroup().id))]",
+        "storageAccountType": "Standard_LRS"
+    },
+    "resources": [
+        {
+            "apiVersion": "2017-10-01",
+            "name": "[variables('dataFactoryStorageAccountName')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "[variables('storageAccountType')]"
+            }
+        },
+        {
+            "apiVersion": "[parameters('dataFactoryApiVersion')]",
+            "name": "[variables('dataFactoryName')]",
+            "location": "[parameters('location')]",
+            "type": "Microsoft.DataFactory/factories",
+            "properties": {
+                "loggingStorageAccountName": "[variables('dataFactoryStorageAccountName')]",
+                "loggingStorageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('dataFactoryStorageAccountName')), '2017-10-01').keys[1]]"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "dependsOn": [
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('dataFactoryStorageAccountName'))]"
+          ]
+        }
+    ],
+    "outputs": {
+      "referenceOutput": {
+          "type": "object",
+          "value": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('dataFactoryStorageAccountName')), '2017-10-01')]"
+      }
+    }
+}

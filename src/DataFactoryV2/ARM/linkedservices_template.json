@@ -1,0 +1,230 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "baseName": {
+      "type": "string",
+      "defaultValue": "mydriving"
+    },
+    "baseNameDf": {
+      "type": "string",
+      "defaultValue": "rgtest"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "East US"
+    },
+    "dataFactoryApiVersion": {
+      "type": "string",
+      "defaultValue": "2017-09-01-preview"
+    },
+    "sqlServiceObjectiveName": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": ["Basic", "S0", "S1", "S2", "S3", "P1", "P2", "P4", "P6", "P11", "ElasticPool"]
+    },
+    "sqlDBEdition": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": ["Basic", "Standard", "Premium"]
+    },
+    "sqlServerAdminPassword": {
+      "type": "securestring"
+    },
+    "sqlAnalyticsServerAdminPassword": {
+      "type": "securestring"
+    }
+  },
+  "variables": {
+
+    "blobStorageAnalytics": "[substring(toLower(concat(parameters('baseName'), 'str', uniquestring(resourceGroup().id), '0000000000')), 0, 24)]",
+    "blobStorageHdiMetastore": "[substring(toLower(concat(parameters('baseName'), 'logs', uniquestring(resourceGroup().id), '0000000000')), 0, 24)]",
+    "assetsContainerName": "mydrivinghdi",
+    "rawDataContainerName": "rawdata",
+    "tripdataContainerName": "tripdata",
+    "referenceContainerName": "reference",
+
+    "sqlServerName": "[toLower(concat(parameters('baseName'), 'dbserver', '-', uniquestring(resourceGroup().id)))]",
+    "sqlServerAdminLogin": "YourUserName",
+    "sqlDBName": "[concat(parameters('baseName'), 'DB')]",
+    "sqlDBEdition": "[parameters('sqlDBEdition')]",
+    "sqlServiceObjectiveName": "[parameters('sqlServiceObjectiveName')]",
+
+    "sqlAnalyticsServerName": "[toLower(concat(parameters('baseName'), '-', 'dbserver', '-', uniquestring(resourceGroup().id)))]",
+    "sqlAnalyticsServerAdminLogin": "YourUserName",
+    "sqlAnalyticsDBName": "[concat(parameters('baseName'), 'AnalyticsDB')]",
+    "sqlAnalyticsDBEdition": "[parameters('sqlDBEdition')]",
+    "sqlAnalyticsServiceObjectiveName": "[parameters('sqlServiceObjectiveName')]",
+
+    "sqlServerVersion": "12.0",
+    "sqlFirewallIpStart": "0.0.0.0",
+    "sqlFirewallIpEnd": "255.255.255.255",
+    "sqlCollation": "SQL_Latin1_General_CP1_CI_AS",
+
+    "dataFactoryName": "[concat(parameters('baseNameDf'), 'df', uniquestring(resourceGroup().id))]",
+    "mlScoringLinkedServiceName": "AzureMLScoringandUpdateLinkedService",
+    "mlTrainingEndpointLinkedServiceName": "TrainingEndpointAMLLinkedService",
+    "sqlAnalyticsLinkedServiceName": "AzureSqlLinkedService",
+    "sqlMobileAppLinkedServiceName": "MobileAppSqlLinkedService",
+    "storageAsaLinkedServiceName": "AzureStorageLinkedService",
+    "hdiMetastoreLinkedServiceName": "HDIMetastoreBlobLinkedService",
+    "hdiOnDemandLinkedServiceName": "DailyComputeHDICluster",
+
+    "pipelineAzureMLDataPrep": "AzureMLDataPrep",
+    "pipelineAzureMLScoring": "AzureMLScoringPipeline",
+    "pipelineAzureMLRetrainingPipeline": "AzureMLRetrainingPipeline",
+    "pipelineCopyBlobToSql": "CopyPipelineDimUserBlobToSQL",
+    "pipelineCopyFactTripDataBlobToSQL": "CopyPipelineFactTripDataBlobToSQL",
+    "pipelineDimUserComputeHDI": "DimUserComputeHDI",
+    "pipelineFactTripDataComputeHDI": "FactTripDataComputeHDI",
+    "pipelineSetupHiveTables": "SetupHiveTablesPipeline",
+    "pipelineSQLSproc": "SQLSprocPipeline",
+    "pipelineSQLSprocCleanup": "SQLSprocCleanupPipeline",
+    "hdInsightScriptsFolder": "hivescripts",
+
+    "mlEndpoint": "https://ussouthcentral.services.azureml.net/workspaces/5aaa8b190e554515af1acc8d2a09cfdf/services/a9e38126472a442faa5e02cfb1a64da0/jobs?api-version=2.0",
+    "mlApiKey": "<TO-BE-COMPLETED>",
+    "mlUpdateResourceEndpoint": "https://management.azureml.net/workspaces/5aaa8b190e554515af1acc8d2a09cfdf/webservices/4fcc15b6ed0a453cbedea56d68c2bb2b/endpoints/retrain",
+    "mlTrainingEndpoint": "https://ussouthcentral.services.azureml.net/workspaces/5aaa8b190e554515af1acc8d2a09cfdf/services/ea7e392901e04517a395cf23192cf5fb/jobs?api-version=2.0",
+    "mlTrainingEndpointApiKey": "<TO-BE-COMPLETED>"
+  },
+  "resources": [{
+    "name": "[variables('dataFactoryName')]",
+    "apiVersion": "2017-09-01-preview",
+    "type": "Microsoft.DataFactory/factories",
+    "location": "[parameters('location')]",
+    "resources": [{
+        "apiVersion": "2017-09-01-preview",
+        "comments": "Linked Service: SQL Database - Analytics",
+        "type": "linkedservices",
+        "name": "[variables('sqlAnalyticsLinkedServiceName')]",
+        "properties": {
+          "description": "",
+          "type": "AzureSqlDatabase",
+          "typeProperties": {
+            "connectionString": {
+              "value": "[concat('Data Source=tcp:', reference(resourceId('Microsoft.Sql/servers', variables('sqlAnalyticsServerName')), '2014-04-01').fullyQualifiedDomainName, ',1433;Initial Catalog=', variables('sqlAnalyticsDBName'), ';User Id=', variables('sqlAnalyticsServerAdminLogin'), '@', variables('sqlAnalyticsServerName'), ';Password=', parameters('sqlAnalyticsServerAdminPassword'), ';')]",
+              "type": "SecureString"
+            }
+          }
+        },
+        "dependsOn": [
+          "[variables('dataFactoryName')]"
+        ]
+      },
+      {
+        "apiVersion": "2017-09-01-preview",
+        "comments": "Linked Service: SQL Database - Mobile App",
+        "type": "linkedservices",
+        "name": "[variables('sqlMobileAppLinkedServiceName')]",
+        "properties": {
+          "description": "",
+          "type": "AzureSqlDatabase",
+          "typeProperties": {
+            "connectionString": {
+              "value": "[concat('Data Source=tcp:', reference(resourceId('Microsoft.Sql/servers', variables('sqlServerName')), '2014-04-01').fullyQualifiedDomainName, ',1433;Initial Catalog=', variables('sqlDBName'), ';User Id=', variables('sqlServerAdminLogin'), '@', variables('sqlServerName'), ';Password=', parameters('sqlServerAdminPassword'), ';')]",
+              "type": "SecureString"
+
+            }
+          }
+        },
+        "dependsOn": [
+          "[variables('dataFactoryName')]"
+        ]
+      },
+      {
+        "apiVersion": "2017-09-01-preview",
+        "comments": "Linked Service: Blob Storage - Analytics",
+        "type": "linkedservices",
+        "name": "[variables('storageAsaLinkedServiceName')]",
+        "properties": {
+          "description": "",
+          "type": "AzureStorage",
+          "typeProperties": {
+            "connectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('blobStorageAnalytics'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('blobStorageAnalytics')), '2015-06-15').key1)]"
+          }
+        },
+        "dependsOn": [
+          "[variables('dataFactoryName')]"
+        ]
+      },
+      {
+        "apiVersion": "2017-09-01-preview",
+        "type": "linkedservices",
+        "comments": "Linked Service: Blob Storage - HDI Metastore",
+        "name": "[variables('hdiMetastoreLinkedServiceName')]",
+        "properties": {
+          "description": "",
+          "type": "AzureStorage",
+          "typeProperties": {
+            "connectionString": {
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('blobStorageHdiMetastore'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('blobStorageHdiMetastore')), '2015-06-15').key1)]",
+              "type": "SecureString"
+            }
+          }
+        },
+        "dependsOn": [
+          "[variables('dataFactoryName')]"
+        ]
+      },
+      {
+        "apiVersion": "2017-09-01-preview",
+        "comments": "Linked Service: HDI Compute Cluster",
+        "type": "linkedservices",
+        "name": "[variables('hdiOnDemandLinkedServiceName')]",
+        "properties": {
+          "description": "",
+          "type": "HDInsightOnDemand",
+          "typeProperties": {
+            "version": "3.1",
+            "clusterSize": 4,
+            "timeToLive": "02:00:00",
+            "osType": "Windows",
+            "additionalLinkedServiceNames": ["[variables('storageAsaLinkedServiceName')]"],
+            "linkedServiceName": "[variables('hdiMetastoreLinkedServiceName')]"
+          }
+        },
+        "dependsOn": [
+          "[variables('dataFactoryName')]",
+          "[variables('hdiMetastoreLinkedServiceName')]",
+          "[variables('storageAsaLinkedServiceName')]"
+        ]
+      },
+    {
+      "apiVersion": "2017-09-01-preview",
+      "comments": "Linked Service: Machine Learning",
+      "type": "linkedservices",
+      "name": "[variables('mlScoringLinkedServiceName')]",
+      "properties": {
+        "description": "",
+        "type": "AzureML",
+        "typeProperties": {
+          "mlEndpoint": "[variables('mlEndpoint')]",
+          "apiKey": "[variables('mlApiKey')]",
+          "updateResourceEndpoint": "[variables('mlUpdateResourceEndpoint')]"
+        }
+      },
+      "dependsOn": [
+        "[variables('dataFactoryName')]"
+      ]
+    },
+        {
+          "apiVersion": "2017-09-01-preview",
+          "comments": "Linked Service: Machine Learning Training Endpoint",
+          "type": "linkedservices",
+          "name": "[variables('mlTrainingEndpointLinkedServiceName')]",
+          "properties": {
+            "description": "",
+            "type": "AzureML",
+            "typeProperties": {
+              "mlEndpoint": "[variables('mlTrainingEndpoint')]",
+              "apiKey": "[variables('mlTrainingEndpointApiKey')]"
+            }
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]"
+          ]
+        }
+    ]
+  }]
+}

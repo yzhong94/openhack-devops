@@ -1,0 +1,497 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "baseName": {
+            "type": "string",
+            "defaultValue": "mydriving"
+        },
+        "baseNameDf": {
+            "type": "string",
+            "defaultValue": "rgtest"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "East US"
+        },
+        "dataFactoryApiVersion": {
+            "type": "string",
+            "defaultValue": "2017-09-01-preview"
+        },
+        "dataFactoryEndDate": {
+            "type": "string"
+        },
+        "dataFactoryStartDate": {
+            "type": "string"
+        },
+        "sqlAnalyticsServerAdminPassword": {
+            "type": "securestring"
+        }
+    },
+    "variables": {
+        "dataFactoryName": "[concat(parameters('baseNameDf'), 'df', uniquestring(resourceGroup().id))]",
+        "datasetAMLiLearner": "AMLiLearnerDataset",
+        "datasetDimUserBlob": "DimUserBlob",
+        "datasetDimUserSql": "DimUserSQL",
+        "datasetDimUserTempSql": "DimUserTempSQL",
+        "datasetFactTripDataBlob": "FactTripDataBlob",
+        "datasetFactTripDataSql": "FactTripDataSQL",
+        "datasetFactTripDataTempSql": "FactTripDataTempSQL",
+        "datasetFactTripMLDataMobileSql": "FactTripMLDataMobileSQL",
+        "datasetFactTripMLDataSql": "FactTripMLDataSQL",
+        "datasetFactTripMLInputDataBlob": "FactTripMLInputDataBlob",
+        "datasetFactTripMLOutputDataBlob": "FactTripMLOutputDataBlob",
+        "datasetMyDrivingRawDataBlob": "MyDrivingRawDataBlob",
+        "datasetRawDataOneSecAggregated": "RawDataOneSecAggregated",
+        "datasetTempIntermediateBlob": "TempIntermediateDatasetBlob",
+        "datasetTempIntermediate2Blob": "TempIntermediateDataset2Blob",
+        "datasetTempIntermediate3Blob": "TempIntermediateDataset3Blob",
+        "datasetFinalTempSql": "FinalTempDataSetSql",
+        "storageAsaLinkedServiceName": "AzureStorageLinkedService",
+        "sqlAnalyticsLinkedServiceName": "AzureSqlLinkedService",
+        "sqlMobileAppLinkedServiceName": "MobileAppSqlLinkedService",
+        "rawDataContainerName": "rawdata",
+        "tripdataContainerName": "tripdata",
+        "referenceContainerName": "reference",
+        "pipelineAzureMLDataPrep": "AzureMLDataPrep",
+        "pipelineAzureMLScoring": "AzureMLScoringPipeline",
+        "pipelineAzureMLRetrainingPipeline": "AzureMLRetrainingPipeline",
+        "pipelineCopyBlobToSql": "CopyPipelineDimUserBlobToSQL",
+        "pipelineCopyFactTripDataBlobToSQL": "CopyPipelineFactTripDataBlobToSQL",
+        "pipelineDimUserComputeHDI": "DimUserComputeHDI",
+        "pipelineFactTripDataComputeHDI": "FactTripDataComputeHDI",
+        "pipelineSetupHiveTables": "SetupHiveTablesPipeline",
+        "pipelineSQLSproc": "SQLSprocPipeline",
+        "pipelineSQLSprocCleanup": "SQLSprocCleanupPipeline",
+        "hdInsightScriptsFolder": "hivescripts",
+        "hdiOnDemandLinkedServiceName": "DailyComputeHDICluster",
+        "assetsContainerName": "mydrivinghdi",
+        "hdiMetastoreLinkedServiceName": "HDIMetastoreBlobLinkedService",
+        "blobStorageAnalytics": "[substring(toLower(concat(parameters('baseName'), 'str', uniquestring(resourceGroup().id), '0000000000')), 0, 24)]",
+        "mlTrainingEndpointLinkedServiceName": "TrainingEndpointAMLLinkedService",
+        "mlScoringLinkedServiceName": "AzureMLScoringandUpdateLinkedService",
+        "sqlAnalyticsServerName": "[toLower(concat(parameters('baseName'), '-', 'dbserver', '-', uniquestring(resourceGroup().id)))]",
+        "sqlAnalyticsServerAdminLogin": "YourUserName",
+        "sqlAnalyticsDBName": "[concat(parameters('baseName'), 'AnalyticsDB')]",
+        "sqlAnalyticsServerAdminPwd": "parameters('sqlAnalyticsServerAdminPassword')"
+    },
+    "resources": [{
+        "name": "[variables('dataFactoryName')]",
+        "apiVersion": "[parameters('dataFactoryApiVersion')]",
+        "type": "Microsoft.DataFactory/factories",
+        "location": "[parameters('location')]",
+        "resources": [{
+                "apiVersion": "[parameters('dataFactoryApiVersion')]",
+                "comments": "Pipeline: SetupHiveTablesPipeline",
+                "type": "pipelines",
+                "name": "[variables('pipelineSetupHiveTables')]",
+                "properties": {
+                    "description": "This pipeline will setup the Hive tables for processing",
+                    "activities": [{
+                            "type": "HDInsightHive",
+                            "name": "CreateRawTableHive",
+                            "linkedServiceName": {
+                                "type": "LinkedServiceReference",
+                                "referenceName": "[variables('hdiOnDemandLinkedServiceName')]"
+                            },
+                            "typeProperties": {
+                                "scriptPath": "[concat(variables('assetsContainerName'), '/', variables('hdInsightScriptsFolder'), '/CreateRawTable.hql')]",
+                                "scriptLinkedService": {
+                                    "type": "LinkedServiceReference",
+                                    "referenceName": "[variables('hdiMetastoreLinkedServiceName')]"
+                                },
+                                "defines": {
+                                    "Year": "$$Text.Format('{0:yyyy}',SliceStart)",
+                                    "Month": "$$Text.Format('{0:MM}',SliceStart)",
+                                    "Day": "$$Text.Format('{0:dd}',SliceStart)",
+                                    "DataStorageAccount": "[variables('blobStorageAnalytics')]"
+                                }
+                            },
+                            "inputs": [{
+                                "name": "[variables('datasetMyDrivingRawDataBlob')]"
+                            }],
+                            "outputs": [{
+                                "name": "[variables('datasetTempIntermediateBlob')]"
+                            }],
+                            "policy": {
+                                "timeout": "01:00:00",
+                                "concurrency": 1,
+                                "retry": 3
+                            },
+                            "scheduler": {
+                                "frequency": "Day",
+                                "interval": 1
+                            }
+                        },
+                        {
+                            "type": "HDInsightHive",
+                            "name": "CreatePartitionsHive",
+                            "linkedServiceName": {
+                                "type": "LinkedServiceReference",
+                                "referenceName": "[variables('hdiOnDemandLinkedServiceName')]"
+                            },
+                            "typeProperties": {
+                                "scriptPath": "[concat(variables('assetsContainerName'), '/', variables('hdInsightScriptsFolder'), '/AddPartitionsHive.hql')]",
+                                "scriptLinkedService": {
+                                    "type": "LinkedServiceReference",
+                                    "referenceName": "[variables('hdiMetastoreLinkedServiceName')]"
+                                },
+                                "defines": {
+                                    "Year": "$$Text.Format('{0:yyyy}',SliceStart)",
+                                    "Month": "$$Text.Format('{0:MM}',SliceStart)",
+                                    "Day": "$$Text.Format('{0:dd}',SliceStart)",
+                                    "DataStorageAccount": "[variables('blobStorageAnalytics')]"
+                                }
+                            },
+                            "inputs": [{
+                                    "name": "[variables('datasetMyDrivingRawDataBlob')]"
+                                },
+                                {
+                                    "name": "[variables('datasetTempIntermediateBlob')]"
+                                }
+                            ],
+                            "outputs": [{
+                                "name": "[variables('datasetTempIntermediate2Blob')]"
+                            }],
+                            "policy": {
+                                "timeout": "01:00:00",
+                                "concurrency": 1,
+                                "retry": 3
+                            },
+                            "scheduler": {
+                                "frequency": "Day",
+                                "interval": 1
+                            }
+                        },
+                        {
+                            "type": "HDInsightHive",
+                            "name": "CreateOneSecAggTableHive",
+                            "linkedServiceName": {
+                                "type": "LinkedServiceReference",
+                                "referenceName": "[variables('hdiMetastoreLinkedServiceName')]"
+                            },
+                            "typeProperties": {
+                                "scriptPath": "[concat(variables('assetsContainerName'), '/', variables('hdInsightScriptsFolder'), '/TripDataInt.hql')]",
+                                "scriptLinkedService": {
+                                    "type": "LinkedServiceReference",
+                                    "referenceName": "[variables('hdiMetastoreLinkedServiceName')]"
+                                },
+                                "defines": {
+                                    "Year": "$$Text.Format('{0:yyyy}',SliceStart)",
+                                    "Month": "$$Text.Format('{0:MM}',SliceStart)",
+                                    "Day": "$$Text.Format('{0:dd}',SliceStart)",
+                                    "DataStorageAccount": "[variables('blobStorageAnalytics')]"
+                                }
+                            },
+                            "inputs": [{
+                                    "name": "[variables('datasetMyDrivingRawDataBlob')]"
+                                },
+                                {
+                                    "name": "[variables('datasetTempIntermediate2Blob')]"
+                                }
+                            ],
+                            "outputs": [{
+                                "name": "[variables('datasetRawDataOneSecAggregated')]"
+                            }],
+                            "policy": {
+                                "timeout": "01:00:00",
+                                "concurrency": 1,
+                                "retry": 3
+                            },
+                            "scheduler": {
+                                "frequency": "Day",
+                                "interval": 1
+                            }
+                        }
+                    ],
+                    "start": "[parameters('dataFactoryStartDate')]",
+                    "end": "[parameters('dataFactoryEndDate')]",
+                    "isPaused": false,
+                    "pipelineMode": "Scheduled"
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "[parameters('dataFactoryApiVersion')]",
+                "comments": "Pipeline: AzureMLDataPrep",
+                "type": "pipelines",
+                "name": "[variables('pipelineAzureMLDataPrep')]",
+                "properties": {
+                    "description": "This Pipeline prepares data and passes it onto AzureML for batch scoring.",
+                    "activities": [{
+                        "type": "HDInsightHive",
+                        "name": "HiveActivityTemplate",
+                        "linkedServiceName": {
+                            "type": "LinkedServiceReference",
+                            "referenceName": "[variables('hdiOnDemandLinkedServiceName')]"
+                        },
+                        "typeProperties": {
+                            "scriptPath": "[concat(variables('assetsContainerName'), '/', variables('hdInsightScriptsFolder'), '/mlinputdata.hql')]",
+                            "scriptLinkedService": {
+                                "type": "LinkedServiceReference",
+                                "referenceName": "[variables('hdiMetastoreLinkedServiceName')]"
+                            },
+                            "defines": {
+                                "Year": "$$Text.Format('{0:yyyy}',SliceStart)",
+                                "Month": "$$Text.Format('{0:MM}',SliceStart)",
+                                "Day": "$$Text.Format('{0:dd}',SliceStart)"
+                            }
+                        },
+                        "inputs": [{
+                            "name": "[variables('datasetRawDataOneSecAggregated')]"
+                        }],
+                        "outputs": [{
+                            "name": "[variables('datasetFactTripMLInputDataBlob')]"
+                        }],
+                        "policy": {
+                            "timeout": "01:00:00",
+                            "concurrency": 1,
+                            "retry": 3
+                        },
+                        "scheduler": {
+                            "frequency": "Day",
+                            "interval": 1
+                        }
+                    }],
+                    "start": "[parameters('dataFactoryStartDate')]",
+                    "end": "[parameters('dataFactoryEndDate')]",
+                    "isPaused": false,
+                    "pipelineMode": "Scheduled"
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "[parameters('dataFactoryApiVersion')]",
+                "comments": "Pipeline: DimUserCompute-HDI ",
+                "type": "pipelines",
+                "name": "[variables('pipelineDimUserComputeHDI')]",
+                "properties": {
+                    "description": "Populates the DimUser table in Azure SQL DB. HDI is used as the compute engine.",
+                    "activities": [{
+                        "type": "HDInsightHive",
+                        "name": "HiveActivityTemplate",
+                        "linkedServiceName": {
+                            "type": "LinkedServiceReference",
+                            "referenceName": "[variables('hdiOnDemandLinkedServiceName')]"
+                        },
+                        "typeProperties": {
+                            "scriptPath": "[concat(variables('assetsContainerName'), '/', variables('hdInsightScriptsFolder'), '/dimUserUpdate.hql')]",
+                            "scriptLinkedService": {
+                                "type": "LinkedServiceReference",
+                                "referenceName": "[variables('hdiMetastoreLinkedServiceName')]"
+                            },
+                            "defines": {
+                                "Year": "$$Text.Format('{0:yyyy}',SliceStart)",
+                                "Month": "$$Text.Format('{0:MM}',SliceStart)",
+                                "Day": "$$Text.Format('{0:dd}',SliceStart)",
+                                "DataStorageAccount": "[variables('blobStorageAnalytics')]"
+                            }
+                        },
+                        "inputs": [{
+                                "name": "[variables('datasetMyDrivingRawDataBlob')]"
+                            },
+                            {
+                                "name": "[variables('datasetTempIntermediate2Blob')]"
+                            }
+                        ],
+                        "outputs": [{
+                            "name": "[variables('datasetDimUserBlob')]"
+                        }],
+                        "policy": {
+                            "timeout": "01:00:00",
+                            "concurrency": 1,
+                            "retry": 3
+                        },
+                        "scheduler": {
+                            "frequency": "Day",
+                            "interval": 1
+                        }
+                    }],
+                    "start": "[parameters('dataFactoryStartDate')]",
+                    "end": "[parameters('dataFactoryEndDate')]",
+                    "isPaused": false,
+                    "pipelineMode": "Scheduled"
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "[parameters('dataFactoryApiVersion')]",
+                "comments": "Pipeline: FactTripDataCompute-HDI",
+                "type": "pipelines",
+                "name": "[variables('pipelineFactTripDataComputeHDI')]",
+                "properties": {
+                    "description": "This pipeline executes the hive queries needed to transform the data.",
+                    "activities": [{
+                        "type": "HDInsightHive",
+                        "name": "factTripDataHive",
+                        "linkedServiceName": {
+                            "type": "LinkedServiceReference",
+                            "referenceName": "[variables('hdiOnDemandLinkedServiceName')]"
+                        },
+                        "typeProperties": {
+                            "scriptPath": "[concat(variables('assetsContainerName'), '/', variables('hdInsightScriptsFolder'), '/factTripData.hql')]",
+                            "scriptLinkedService": {
+                                "type": "LinkedServiceReference",
+                                "referenceName": "[variables('hdiMetastoreLinkedServiceName')]"
+                            },
+                            "defines": {
+                                "Year": "$$Text.Format('{0:yyyy}',SliceStart)",
+                                "Month": "$$Text.Format('{0:MM}',SliceStart)",
+                                "Day": "$$Text.Format('{0:dd}',SliceStart)",
+                                "DataStorageAccount": "[variables('blobStorageAnalytics')]"
+                            }
+                        },
+                        "inputs": [{
+                            "name": "[variables('datasetRawDataOneSecAggregated')]"
+                        }],
+                        "outputs": [{
+                            "name": "[variables('datasetFactTripDataBlob')]"
+                        }],
+                        "policy": {
+                            "timeout": "01:00:00",
+                            "concurrency": 1,
+                            "retry": 3
+                        },
+                        "scheduler": {
+                            "frequency": "Day",
+                            "interval": 1
+                        }
+                    }],
+                    "start": "[parameters('dataFactoryStartDate')]",
+                    "end": "[parameters('dataFactoryEndDate')]",
+                    "isPaused": false,
+                    "pipelineMode": "Scheduled"
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "[parameters('dataFactoryApiVersion')]",
+                "comments": "Pipeline: AzureML-RetrainingPipeline",
+                "type": "pipelines",
+                "name": "[variables('pipelineAzureMLRetrainingPipeline')]",
+                "properties": {
+                    "description": "Pipeline for retraining AzureML model",
+                    "activities": [{
+                            "type": "AzureMLBatchExecution",
+                            "name": "AzureMLRetrainingActivity",
+                            "linkedServiceName": {
+                                "type": "LinkedServiceReference",
+                                "referenceName": "[variables('mlTrainingEndpointLinkedServiceName')]"
+                            },
+                            "typeProperties": {
+                                "webServiceOutputs": {
+                                    "output1": "[variables('datasetAMLiLearner')]"
+                                },
+                                "globalParameters": {
+                                    "Account name": "[variables('blobStorageAnalytics')]",
+                                    "Account key": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('blobStorageAnalytics')), '2017-10-01').keys[0]]",
+                                    "Path to container, directory or blob": "tripdata/tables/mlinput/*000*",
+                                    "File has header row": false
+                                }
+                            },
+                            "inputs": [{
+                                "name": "[variables('datasetFactTripMLInputDataBlob')]"
+                            }],
+                            "outputs": [{
+                                "name": "[variables('datasetAMLiLearner')]"
+                            }],
+                            "policy": {
+                                "timeout": "01:00:00",
+                                "concurrency": 1,
+                                "retry": 3
+                            },
+                            "scheduler": {
+                                "frequency": "Day",
+                                "interval": 1
+                            }
+                        },
+                        {
+                            "type": "AzureMLUpdateResource",
+                            "name": "AzureMLUpdateResourceActivity",
+                            "linkedServiceName": "[variables('mlScoringLinkedServiceName')]",
+                            "typeProperties": {
+                                "trainedModelDatasetName": "[variables('datasetAMLiLearner')]",
+                                "trainedModelName": "MyDriving [trained model]"
+                            },
+                            "inputs": [{
+                                "name": "[variables('datasetAMLiLearner')]"
+                            }],
+                            "outputs": [{
+                                "name": "[variables('datasetTempIntermediate3Blob')]"
+                            }],
+                            "policy": {
+                                "timeout": "01:00:00",
+                                "concurrency": 1,
+                                "retry": 3
+                            },
+                            "scheduler": {
+                                "frequency": "Day",
+                                "interval": 1
+                            }
+                        }
+                    ],
+                    "start": "[parameters('dataFactoryStartDate')]",
+                    "end": "[parameters('dataFactoryEndDate')]",
+                    "isPaused": false,
+                    "pipelineMode": "Scheduled"
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            },
+            {
+                "apiVersion": "[parameters('dataFactoryApiVersion')]",
+                "comments": "Pipeline: CopyPipeline-FactTripDataBlobToSQL",
+                "type": "pipelines",
+                "name": "[variables('pipelineCopyFactTripDataBlobToSQL')]",
+                "properties": {
+                    "description": "Copies processed FactTripData from Blob to Temp SQL tables",
+                    "activities": [{
+                        "type": "Copy",
+                        "name": "FactDataCopy",
+                        "typeProperties": {
+                            "source": {
+                                "type": "BlobSource"
+                            },
+                            "sink": {
+                                "type": "SqlSink",
+                                "writeBatchSize": 100,
+                                "writeBatchTimeout": "00:20:00"
+                            }
+                        },
+                        "inputs": [{
+                            "name": "[variables('datasetFactTripDataBlob')]"
+                        }],
+                        "outputs": [{
+                            "name": "[variables('datasetFactTripDataTempSql')]"
+                        }],
+                        "policy": {
+                            "timeout": "01:00:00",
+                            "concurrency": 1,
+                            "retry": 3
+                        },
+                        "scheduler": {
+                            "frequency": "Day",
+                            "interval": 1
+                        }
+                    }],
+                    "start": "[parameters('dataFactoryStartDate')]",
+                    "end": "[parameters('dataFactoryEndDate')]",
+                    "isPaused": false,
+                    "pipelineMode": "Scheduled"
+                },
+                "dependsOn": [
+                    "[variables('dataFactoryName')]"
+                ]
+            }
+        ]
+    }]
+}
