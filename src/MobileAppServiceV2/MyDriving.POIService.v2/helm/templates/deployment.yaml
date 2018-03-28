@@ -27,6 +27,27 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.internalPort }}
+          env:
+            - name: SQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sql
+                  key: sql_user
+            - name: SQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sql
+                  key: sql_password
+            - name: SQL_SERVER
+              valueFrom:
+                secretKeyRef:
+                  name: sql
+                  key: sql_server
+            - name: SQL_DBNAME
+              valueFrom:
+                secretKeyRef:
+                  name: sql
+                  key: sql_dbname
           resources:
 {{ toYaml .Values.resources | indent 12 }}
     {{- with .Values.nodeSelector }}

@@ -34,7 +34,17 @@ namespace MyDriving.POIService.v2
 
                 funcConfiguration = builder.Build();
 
+                var SQL_USER = funcConfiguration.GetSection("SQL_USER").Value;
+                var SQL_PASSWORD = funcConfiguration.GetSection("SQL_PASSWORD").Value;
+                var SQL_SERVER = funcConfiguration.GetSection("SQL_SERVER").Value;
+                var SQL_DBNAME = funcConfiguration.GetSection("SQL_DBNAME").Value;
+
                 var connectionString = funcConfiguration["ConnectionStrings:myDrivingDB"];
+
+                connectionString = connectionString.Replace("[SQL_USER]", SQL_USER);
+                connectionString = connectionString.Replace("[SQL_PASSWORD]", SQL_PASSWORD);
+                connectionString = connectionString.Replace("[SQL_SERVER]", SQL_SERVER);
+                connectionString = connectionString.Replace("[SQL_DBNAME]", SQL_DBNAME);
 
                 using (var sqlConn = new SqlConnection(connectionString))
                 {

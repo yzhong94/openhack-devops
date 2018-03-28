@@ -24,7 +24,7 @@ spec:
         {{- range $path := . }}
           - path: {{ $path.path }}
             backend:
-              serviceName: {{ template "chart.fullname" . }}
+              serviceName: {{ $path.serviceName }}
               servicePort: {{ $path.servicePort }}
         {{- end -}}
     {{- end -}}

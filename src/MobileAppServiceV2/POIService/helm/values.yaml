@@ -17,9 +17,9 @@ ingress:
   annotations:
     kubernetes.io/ingress.class: traefik
   rules:
-    mydriving-teamadmin.julien.work:
+    52.191.212.53.xip.io:
       - path: /api/GetAllPOIs
-        serviceName: api-user-mydrive-user
+        serviceName: api-poi-mydrive-poi
         servicePort: 80 
 resources: {}
  # We usually recommend not to specify default resources and to leave this as a conscious
