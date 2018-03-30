@@ -1,4 +1,7 @@
-﻿namespace SimulatedDevice
+﻿
+
+
+namespace SimulatedDevice
 {
     using System;
     using System.Text;
@@ -26,49 +29,109 @@
     public class Program
     {
 
-        //Setup Device Connection Information
-        private const string IotHubUri = "mydriving-vpwupcazgfita.azure-devices.net";
-        private const string DeviceKey = "JYalviYVlMt6+jXkgJgyuN3exevWjbYbTrxNevCJsV4=";
-        private const string DeviceId = "MyDriving-DevOpsSim1";
-        private const string AzureMobileServiceUrl = "https://mydriving-vpwupcazgfita.azurewebsites.net";
+        
 
+        private static void Main(string[] args)
+        {
+            if (args.Length > 0)
+            {
+                SimulationContext ctx = new SimulationContext(args[0], args[1], args[2], args[3]);
+                ctx.SendDeviceToCloudMessagesAsync();
+            }
+            //Microsoft.WindowsAzure.MobileServices.CurrentPlatform.Init();
+
+            //TODO : How Do we Keep the Container Continuously running the code ?
+           
+            //Console.ReadLine();
+        }
+
+    }
+
+    public struct TimeInfo
+    {
+        public int evtSeq;
+        public TimeSpan tSpan;
+    }
+    public class LoginController
+    {
+
+        LoginViewModel viewModel;
+        public async void AttempLogin()
+        {
+            viewModel = new LoginViewModel();
+            await LoginAsync(LoginAccount.Microsoft);
+
+            //await login.ExecuteLoginMicrosoftCommandAsync();
+
+        }
+        async Task LoginAsync(LoginAccount account)
+        {
+            switch (account)
+            {
+                case LoginAccount.Facebook:
+                    await viewModel.ExecuteLoginFacebookCommandAsync();
+                    break;
+                case LoginAccount.Microsoft:
+                    await viewModel.ExecuteLoginMicrosoftCommandAsync();
+                    break;
+                case LoginAccount.Twitter:
+                    await viewModel.ExecuteLoginTwitterCommandAsync();
+                    break;
+            }
+
+            if (viewModel.IsLoggedIn)
+            {
+                //When the first screen of the app is launched after user has logged in, initialize the processor that manages connection to OBD Device and to the IOT Hub
+                await Services.OBDDataProcessor.GetProcessor().Initialize(ViewModel.ViewModelBase.StoreManager);
+
+                //NavigateToTabs();
+            }
+        }
+
+    }
+
+    public class SimulationContext
+    {
+        //Setup Device Connection Information with some default values
+        private string IotHubUri = String.Empty;                //"mydriving-vpwupcazgfita.azure-devices.net";
+        private string DeviceKey = String.Empty;                //"JYalviYVlMt6+jXkgJgyuN3exevWjbYbTrxNevCJsV4=";
+        private string DeviceId = String.Empty;                 //"MyDriving-DevOpsSim1";
+        private string AzureMobileServiceUrl = String.Empty;    //"https://mydriving-vpwupcazgfita.azurewebsites.net";
 
         //IOTHUB Vars
         private static DeviceClient _deviceClient;
         private static int _messageId = 1;
 
-        //Service Configuration to Different Services Requried
-        static IStoreManager _storeManager;
-        public static IStoreManager StoreManager => _storeManager ?? (_storeManager = ServiceLocator.Instance.Resolve<IStoreManager>());
-        public Settings Settings => Settings.Current;
-
-
-
-
-
-        private static void Main(string[] args)
+        public SimulationContext(string iotHubUri, string deviceKey, string deviceId, string azureMobileServiceUrl)
         {
+            this.IotHubUri = iotHubUri;
+            this.DeviceKey = deviceKey;
+            this.DeviceId = deviceId;
+            this.AzureMobileServiceUrl = azureMobileServiceUrl;
+
+
             InitializeServices();
             StartSimulator();
 
             //TODO: Add Authentication
-            //LoginViewController login = new LoginViewController();
+            //LoginController login = new LoginController();
             //login.AttempLogin();
-
-            SendDeviceToCloudMessagesAsync();
-            //Microsoft.WindowsAzure.MobileServices.CurrentPlatform.Init();
-
-           
-            Console.ReadLine();
         }
-        private static void StartSimulator()
+
+
+        //Service Configuration to Different Services Requried
+        private IStoreManager _storeManager;
+        public IStoreManager StoreManager => _storeManager ?? (_storeManager = ServiceLocator.Instance.Resolve<IStoreManager>());
+        public Settings Settings => Settings.Current;
+
+        private void StartSimulator()
         {
             Console.WriteLine($"Simulated device : {DeviceId} \n Starting Trip Broadcast");
             _deviceClient = DeviceClient.Create(IotHubUri, new DeviceAuthenticationWithRegistrySymmetricKey(DeviceId, DeviceKey), TransportType.Mqtt);
             _deviceClient.ProductInfo = "CarTripInfo - Simulator";
         }
 
-        private static void InitializeServices()
+        private void InitializeServices()
         {
 
 
@@ -85,7 +148,7 @@
             //ServiceLocator.Instance.Add<IOBDDevice, OBDDevice>(); //No Need as a Simulator will not be used
         }
 
-        private static async void SendDeviceToCloudMessagesAsync()
+        public async void SendDeviceToCloudMessagesAsync()
         {
             // AzureClient.AzureClient.CheckIsAuthTokenValid();
 
@@ -175,7 +238,7 @@
             //await StoreManager.TripStore.InsertAsync(trip);
         }
 
-        private static void UpdateTripPointTimeStamps(Trip trip)
+        private void UpdateTripPointTimeStamps(Trip trip)
         {
             //Sort Trip Points By Sequence Number
             trip.Points = trip.Points.OrderBy(p => p.Sequence).ToList();
@@ -211,48 +274,13 @@
             // Update Initial Trip Point
             trip.Points[0].RecordedTimeStamp = trip.RecordedTimeStamp;
         }
-    }
 
-    public struct TimeInfo
-    {
-        public int evtSeq;
-        public TimeSpan tSpan;
-    }
-    public class LoginViewController
-    {
 
-        LoginViewModel viewModel;
-        public async void AttempLogin()
-        {
-            viewModel = new LoginViewModel();
-            await LoginAsync(LoginAccount.Microsoft);
 
-            //await login.ExecuteLoginMicrosoftCommandAsync();
 
-        }
-        async Task LoginAsync(LoginAccount account)
-        {
-            switch (account)
-            {
-                case LoginAccount.Facebook:
-                    await viewModel.ExecuteLoginFacebookCommandAsync();
-                    break;
-                case LoginAccount.Microsoft:
-                    await viewModel.ExecuteLoginMicrosoftCommandAsync();
-                    break;
-                case LoginAccount.Twitter:
-                    await viewModel.ExecuteLoginTwitterCommandAsync();
-                    break;
-            }
 
-            if (viewModel.IsLoggedIn)
-            {
-                //When the first screen of the app is launched after user has logged in, initialize the processor that manages connection to OBD Device and to the IOT Hub
-                await Services.OBDDataProcessor.GetProcessor().Initialize(ViewModel.ViewModelBase.StoreManager);
 
-                //NavigateToTabs();
-            }
-        }
+
 
     }
 }
