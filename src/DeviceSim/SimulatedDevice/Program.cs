@@ -10,6 +10,7 @@ namespace SimulatedDevice
     using Newtonsoft.Json;
     using System.IO;
     using System.Collections.Generic;
+    
 
     using SimulatedDevice.Utils;
     using SimulatedDevice.DataObjects;
@@ -25,6 +26,9 @@ namespace SimulatedDevice
     using SimulatedDevice.AzureClient;
 
     using System.Linq;
+    using System.Configuration;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Configuration.EnvironmentVariables;
 
     public class Program
     {
@@ -35,7 +39,7 @@ namespace SimulatedDevice
         {
             if (args.Length > 0)
             {
-                SimulationContext ctx = new SimulationContext(args[0], args[1], args[2], args[3]);
+                SimulationContext ctx = new SimulationContext();
                 ctx.SendDeviceToCloudMessagesAsync();
             }
             //Microsoft.WindowsAzure.MobileServices.CurrentPlatform.Init();
@@ -92,23 +96,30 @@ namespace SimulatedDevice
 
     public class SimulationContext
     {
+        
         //Setup Device Connection Information with some default values
         private string IotHubUri = String.Empty;                //"mydriving-vpwupcazgfita.azure-devices.net";
         private string DeviceKey = String.Empty;                //"JYalviYVlMt6+jXkgJgyuN3exevWjbYbTrxNevCJsV4=";
         private string DeviceId = String.Empty;                 //"MyDriving-DevOpsSim1";
         private string AzureMobileServiceUrl = String.Empty;    //"https://mydriving-vpwupcazgfita.azurewebsites.net";
-
+        private string fileToProcess = String.Empty;            //"C:\Users\brents\source\repos\SimulatedDevice\SimulatedDevice\TripFiles\trip1.csv"
+        private DirectoryInfo fileDirectory;
         //IOTHUB Vars
         private static DeviceClient _deviceClient;
         private static int _messageId = 1;
 
-        public SimulationContext(string iotHubUri, string deviceKey, string deviceId, string azureMobileServiceUrl)
+        public SimulationContext()
         {
-            this.IotHubUri = iotHubUri;
-            this.DeviceKey = deviceKey;
-            this.DeviceId = deviceId;
-            this.AzureMobileServiceUrl = azureMobileServiceUrl;
+            IConfiguration funcConfiguration;
+            var builder = new ConfigurationBuilder().AddEnvironmentVariables();
+            funcConfiguration = builder.Build();
 
+            //Environmental Variables to be Passed to Container
+                this.IotHubUri = funcConfiguration.GetSection("IOT_HUB_URI").Value;
+                this.DeviceKey = funcConfiguration.GetSection("DEVICe_KEY").Value;
+                this.DeviceId = funcConfiguration.GetSection("DEVICE_ID").Value;
+                this.AzureMobileServiceUrl = funcConfiguration.GetSection("AZURE_MOBILE_SERVICE").Value;
+                this.fileDirectory = new DirectoryInfo(funcConfiguration.GetSection("AZURE_MOBILE_SERVICE").Value);
 
             InitializeServices();
             StartSimulator();
@@ -151,6 +162,7 @@ namespace SimulatedDevice
         public async void SendDeviceToCloudMessagesAsync()
         {
             // AzureClient.AzureClient.CheckIsAuthTokenValid();
+            
 
             List<string[]> _toProcess = new List<string[]>();
             string line;
@@ -158,8 +170,10 @@ namespace SimulatedDevice
             Trip trip = new Trip();
             List<TripPoint> _tripPoints = new List<TripPoint>();
 
+            
+
             //Pick up File and strip out useable content
-            StreamReader file = new StreamReader(@"C:\Users\brents\source\repos\SimulatedDevice\SimulatedDevice\TripFiles\trip1.csv");
+            StreamReader file = new StreamReader(fileToProcess);
 
             while ((line = file.ReadLine()) != null)
             {
