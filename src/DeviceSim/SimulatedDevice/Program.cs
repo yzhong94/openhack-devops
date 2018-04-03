@@ -32,16 +32,10 @@ namespace SimulatedDevice
 
     public class Program
     {
-
-        
-
         private static void Main(string[] args)
         {
-            if (args.Length > 0)
-            {
                 SimulationContext ctx = new SimulationContext();
                 ctx.SendDeviceToCloudMessagesAsync();
-            }
             //Microsoft.WindowsAzure.MobileServices.CurrentPlatform.Init();
 
             //TODO : How Do we Keep the Container Continuously running the code ?
@@ -59,10 +53,10 @@ namespace SimulatedDevice
     public class LoginController
     {
 
-        LoginViewModel viewModel;
+        LoginModel viewModel;
         public async void AttempLogin()
         {
-            viewModel = new LoginViewModel();
+            viewModel = new LoginModel();
             await LoginAsync(LoginAccount.Microsoft);
 
             //await login.ExecuteLoginMicrosoftCommandAsync();
@@ -86,7 +80,7 @@ namespace SimulatedDevice
             if (viewModel.IsLoggedIn)
             {
                 //When the first screen of the app is launched after user has logged in, initialize the processor that manages connection to OBD Device and to the IOT Hub
-                await Services.OBDDataProcessor.GetProcessor().Initialize(ViewModel.ViewModelBase.StoreManager);
+                await Services.OBDDataProcessor.GetProcessor().Initialize(ViewModel.ModelBase.StoreManager);
 
                 //NavigateToTabs();
             }
@@ -96,6 +90,7 @@ namespace SimulatedDevice
 
     public class SimulationContext
     {
+        #region Variables
         
         //Setup Device Connection Information with some default values
         private string IotHubUri = String.Empty;                //"mydriving-vpwupcazgfita.azure-devices.net";
@@ -105,21 +100,23 @@ namespace SimulatedDevice
         private string fileToProcess = String.Empty;            //"C:\Users\brents\source\repos\SimulatedDevice\SimulatedDevice\TripFiles\trip1.csv"
         private DirectoryInfo fileDirectory;
         //IOTHUB Vars
-        private static DeviceClient _deviceClient;
-        private static int _messageId = 1;
-
+        private DeviceClient _deviceClient;
+        //private static int _messageId = 1;
+        #endregion
         public SimulationContext()
         {
             IConfiguration funcConfiguration;
             var builder = new ConfigurationBuilder().AddEnvironmentVariables();
             funcConfiguration = builder.Build();
 
+            
+
             //Environmental Variables to be Passed to Container
-                this.IotHubUri = funcConfiguration.GetSection("IOT_HUB_URI").Value;
-                this.DeviceKey = funcConfiguration.GetSection("DEVICe_KEY").Value;
-                this.DeviceId = funcConfiguration.GetSection("DEVICE_ID").Value;
-                this.AzureMobileServiceUrl = funcConfiguration.GetSection("AZURE_MOBILE_SERVICE").Value;
-                this.fileDirectory = new DirectoryInfo(funcConfiguration.GetSection("AZURE_MOBILE_SERVICE").Value);
+            this.IotHubUri = funcConfiguration.GetSection("IOT_HUB_URI").Value ?? ("mydriving-vpwupcazgfita.azure-devices.net");
+            this.DeviceKey = funcConfiguration.GetSection("DEVICe_KEY").Value ?? ("JYalviYVlMt6+jXkgJgyuN3exevWjbYbTrxNevCJsV4=");
+            this.DeviceId = funcConfiguration.GetSection("DEVICE_ID").Value ?? ("MyDriving-DevOpsSim1");
+            this.AzureMobileServiceUrl = funcConfiguration.GetSection("AZURE_MOBILE_SERVICE").Value ?? ("https://mydriving-vpwupcazgfita.azurewebsites.net");
+            this.fileDirectory = new DirectoryInfo(funcConfiguration.GetSection("AZURE_MOBILE_SERVICE").Value ?? (@"C:\Users\brents\source\repos\openhack-devops\src\DeviceSim\SimulatedDevice\TripFiles\"));
 
             InitializeServices();
             StartSimulator();
@@ -144,8 +141,6 @@ namespace SimulatedDevice
 
         private void InitializeServices()
         {
-
-
             ServiceLocator.Instance.Add<IAuthentication, Authentication>();
             ServiceLocator.Instance.Add<ILogger, PlatformLogger>();
             ServiceLocator.Instance.Add<IAzureClient, AzureClient.AzureClient>();
@@ -161,95 +156,95 @@ namespace SimulatedDevice
 
         public async void SendDeviceToCloudMessagesAsync()
         {
-            // AzureClient.AzureClient.CheckIsAuthTokenValid();
-            
-
-            List<string[]> _toProcess = new List<string[]>();
-            string line;
-            int _counter = 0;
-            Trip trip = new Trip();
-            List<TripPoint> _tripPoints = new List<TripPoint>();
-
-            
-
-            //Pick up File and strip out useable content
-            StreamReader file = new StreamReader(fileToProcess);
-
-            while ((line = file.ReadLine()) != null)
+            //AzureClient.AzureClient.CheckIsAuthTokenValid();
+            foreach (var fileToProc in fileDirectory.GetFiles())
             {
-                if ((line != "") && (!line.Contains("tripid"))) { _toProcess.Add(line.Split(',')); }
-                _counter++;
-            }
-            file.Close();
-
-            //Process File Contents
-
-
-            if (_toProcess.Count > 0)
-            {
-
-                trip.RecordedTimeStamp = DateTime.UtcNow;
-                trip.Name = "Trip 1";
-                trip.Id = Guid.NewGuid().ToString(); //Create trip ID
-                trip.UserId = _toProcess[0][1]; //"MicrosoftAccount:cd3744e78c2d3d2d" //TODO: Make this so that once Authenticated we use the Login Information from the JWT Token not the file
+                    List<string[]> _toProcess = new List<string[]>();
+                    string line;
+                    int _counter = 0;
+                    Trip trip = new Trip();
+                    List<TripPoint> _tripPoints = new List<TripPoint>();
 
 
-                foreach (string[] _point in _toProcess)
-                {
-                    TripPoint _tripPoint = new TripPoint()
+
+                    //Pick up File and strip out useable content
+                    StreamReader file = new StreamReader(fileToProc.FullName);
+
+                    while ((line = file.ReadLine()) != null)
                     {
-                        TripId = trip.Id,
-                        Id = Guid.NewGuid().ToString(),
-                        Latitude = Convert.ToDouble(_point[4]),
-                        Longitude = Convert.ToDouble(_point[5]),
-                        Speed = Convert.ToDouble(_point[6]),
-                        RecordedTimeStamp = Convert.ToDateTime(_point[7]),
-                        Sequence = Convert.ToInt32(_point[8]),
-                        RPM = Convert.ToDouble(_point[9]),
-                        ShortTermFuelBank = Convert.ToDouble(_point[10]),
-                        LongTermFuelBank = Convert.ToDouble(_point[11]),
-                        ThrottlePosition = Convert.ToDouble(_point[12]),
-                        RelativeThrottlePosition = Convert.ToDouble(_point[13]),
-                        Runtime = Convert.ToDouble(_point[14]),
-                        DistanceWithMalfunctionLight = Convert.ToDouble(_point[16]),
-                        EngineLoad = Convert.ToDouble(_point[16]),
-                        MassFlowRate = Convert.ToDouble(_point[17]),
-                        EngineFuelRate = Convert.ToDouble(_point[19])
+                        if ((line != "") && (!line.Contains("tripid"))) { _toProcess.Add(line.Split(',')); }
+                        _counter++;
+                    }
+                    file.Close();
 
-                    };
-                    trip.Points.Add(_tripPoint);
-                }
+                    //Process File Contents
+                    if (_toProcess.Count > 0)
+                    {
+                        trip.RecordedTimeStamp = DateTime.UtcNow;
+                        trip.Name = fileToProc.Name;
+                        trip.Id = Guid.NewGuid().ToString(); //Create trip ID
+                        trip.UserId = _toProcess[0][1]; //"MicrosoftAccount:cd3744e78c2d3d2d" //TODO: Make this so that once Authenticated we use the Login Information from the JWT Token not the file
+                        //trip.Distance = 6.1;
+                    
 
-                //Update Time Stamps to current date and times before sending to IOT Hub
-                UpdateTripPointTimeStamps(trip);
+                        foreach (string[] _point in _toProcess)
+                        {
+                            TripPoint _tripPoint = new TripPoint()
+                            {
+                                TripId = trip.Id,
+                                Id = Guid.NewGuid().ToString(),
+                                Latitude = Convert.ToDouble(_point[4]),
+                                Longitude = Convert.ToDouble(_point[5]),
+                                Speed = Convert.ToDouble(_point[6]),
+                                RecordedTimeStamp = Convert.ToDateTime(_point[7]),
+                                Sequence = Convert.ToInt32(_point[8]),
+                                RPM = Convert.ToDouble(_point[9]),
+                                ShortTermFuelBank = Convert.ToDouble(_point[10]),
+                                LongTermFuelBank = Convert.ToDouble(_point[11]),
+                                ThrottlePosition = Convert.ToDouble(_point[12]),
+                                RelativeThrottlePosition = Convert.ToDouble(_point[13]),
+                                Runtime = Convert.ToDouble(_point[14]),
+                                DistanceWithMalfunctionLight = Convert.ToDouble(_point[16]),
+                                EngineLoad = Convert.ToDouble(_point[16]),
+                                MassFlowRate = Convert.ToDouble(_point[17]),
+                                EngineFuelRate = Convert.ToDouble(_point[19])
 
-            }
+                            };
+                            trip.Points.Add(_tripPoint);
+                        }
 
-            //Start Streaming Trip Points to IOT Hub
+                        //Update Time Stamps to current date and times before sending to IOT Hub
+                        UpdateTripPointTimeStamps(trip);
 
-            foreach (TripPoint IOTHubTripPoint in trip.Points)
-            {
+                    }
+
+                    //Start Streaming Trip Points to IOT Hub
+
+                    foreach (TripPoint IOTHubTripPoint in trip.Points)
+                    {
 
 
-                var settings = new JsonSerializerSettings { ContractResolver = new CustomContractResolver() };
-                var tripDataPointBlob = JsonConvert.SerializeObject(IOTHubTripPoint, settings);
-                var tripBlob = JsonConvert.SerializeObject(new { TripId = IOTHubTripPoint.TripId, UserId = trip.UserId });
-                tripBlob = tripBlob.TrimEnd('}');
-                string packagedBlob = $"{tripBlob},\"TripDataPoint\":{tripDataPointBlob}}}";
+                        var settings = new JsonSerializerSettings { ContractResolver = new CustomContractResolver() };
+                        var tripDataPointBlob = JsonConvert.SerializeObject(IOTHubTripPoint, settings);
+                        var tripBlob = JsonConvert.SerializeObject(new { TripId = IOTHubTripPoint.TripId, UserId = trip.UserId });
+                        tripBlob = tripBlob.TrimEnd('}');
+                        string packagedBlob = $"{tripBlob},\"TripDataPoint\":{tripDataPointBlob}}}";
 
-                //Encode Message for IOTHUB
-                var message = new Message(Encoding.ASCII.GetBytes(packagedBlob));
-                await _deviceClient.SendEventAsync(message);
-                Console.WriteLine("{0} > Sending message: {1}", DateTime.Now, packagedBlob);
-                //Add some delay 
-                await Task.Delay(100);
+                        //Encode Message for IOTHUB
+                        var message = new Message(Encoding.ASCII.GetBytes(packagedBlob));
+                        await _deviceClient.SendEventAsync(message);
+                        Console.WriteLine("{0} > Sending message: {1}", DateTime.Now, packagedBlob);
+                        //Add some delay 
+                        await Task.Delay(100);
 
-            }
+                    }
 
-            trip.EndTimeStamp = trip.Points.Last<TripPoint>().RecordedTimeStamp;
+                    trip.EndTimeStamp = trip.Points.Last<TripPoint>().RecordedTimeStamp;
 
-            //TODO: Need to fix/ Refactor MobileService Auth Code for Console not Web/Mobile Environment
-            //await StoreManager.TripStore.InsertAsync(trip);
+                    //TODO: Need to fix/ Refactor MobileService Auth Code for Console not Web/Mobile Environment
+                    //await StoreManager.TripStore.InsertAsync(trip);
+
+        }
         }
 
         private void UpdateTripPointTimeStamps(Trip trip)

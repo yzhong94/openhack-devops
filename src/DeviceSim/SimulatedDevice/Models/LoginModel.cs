@@ -13,7 +13,7 @@ using SimulatedDevice.Utils.Interfaces;
 
 namespace SimulatedDevice.ViewModel
 {
-    public class LoginViewModel : ViewModelBase
+    public class LoginModel : ModelBase
     {
         readonly IAuthentication authentication;
         private readonly IMobileServiceClient client;
@@ -26,7 +26,7 @@ namespace SimulatedDevice.ViewModel
 
         ICommand loginTwitterCommand;
 
-        public LoginViewModel()
+        public LoginModel()
         {
            
             client = ServiceLocator.Instance.Resolve<IAzureClient>()?.Client;

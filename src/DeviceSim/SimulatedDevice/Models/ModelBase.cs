@@ -8,7 +8,7 @@ using SimulatedDevice.AzureClient;
 
 namespace SimulatedDevice.ViewModel
 {
-    public class ViewModelBase : BaseViewModel
+    public class ModelBase : BaseViewModel
     {
         static IStoreManager _storeManager;
 
