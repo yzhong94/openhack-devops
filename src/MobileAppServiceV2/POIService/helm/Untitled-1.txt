@@ -1,4 +1,0 @@
-kubectl create secret docker-registry rgacr123 --docker-server=rgacr123.azurecr.io --docker-username=rgacr123 --docker-password=ABvADbhxlHWSEQUL2vMxog0gOGO=5FMV --docker-email=odaibert@microsoft.com
-
-
-52.191.212.53
