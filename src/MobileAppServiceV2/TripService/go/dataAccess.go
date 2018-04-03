@@ -9,9 +9,9 @@ import (
 
 var (
 	debug    = flag.Bool("debug", false, "enable debugging")
-	password = flag.String("password", "MyComplex-Passw0rd", "the database password")
+	password = flag.String("password", "CHANGE ME", "the database password")
 	port     = flag.Int("port", 1433, "the database port")
-	server   = flag.String("server", "mydrivingdbserver-vpwupcazgfita.database.windows.net", "the database server")
+	server   = flag.String("server", "mydrivingdbserver.database.windows.net", "the database server")
 	user     = flag.String("user", "YourUserName", "the database user")
 	database = flag.String("d", "myDrivingDB", "db_name")
 )
