@@ -1,7 +1,0 @@
-{
-    "IsEncrypted": false,
-    "Values": {
-        "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=tfstatestorage;AccountKey=5/s3tuMaOzB975I8M+cf8g3gsveswoxoy8XJalURWLb3ATMZLVOnnskEEeoAGqmP2bnne+tDhBM2qLucGb4HVg==;BlobEndpoint=https://tfstatestorage.blob.core.windows.net/;TableEndpoint=https://tfstatestorage.table.core.windows.net/;QueueEndpoint=https://tfstatestorage.queue.core.windows.net/;FileEndpoint=https://tfstatestorage.file.core.windows.net/",
-      "AzureWebJobsDashboard": "DefaultEndpointsProtocol=https;AccountName=tfstatestorage;AccountKey=5/s3tuMaOzB975I8M+cf8g3gsveswoxoy8XJalURWLb3ATMZLVOnnskEEeoAGqmP2bnne+tDhBM2qLucGb4HVg==;BlobEndpoint=https://tfstatestorage.blob.core.windows.net/;TableEndpoint=https://tfstatestorage.table.core.windows.net/;QueueEndpoint=https://tfstatestorage.queue.core.windows.net/;FileEndpoint=https://tfstatestorage.file.core.windows.net/",
-    }
-}
