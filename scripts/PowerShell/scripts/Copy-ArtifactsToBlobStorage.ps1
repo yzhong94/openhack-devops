@@ -1,6 +1,3 @@
-Param ([string] $StorageAccountName, [string] $StorageAccountKey, [string] $StorageContainerName, [string] $ArtifactsPath = '..\..\..\src\HDInsight', [string] $AzCopyPath = '..\tools\AzCopy.exe')
-
-$AzCopyPath = [System.IO.Path]::Combine($PSScriptRoot, $AzCopyPath)
-$ArtifactsPath = [System.IO.Path]::Combine($PSScriptRoot, $ArtifactsPath)
+Param ([string] $StorageAccountName, [string] $StorageAccountKey, [string] $StorageContainerName, [string] $ArtifactsPath = "$Env:SYSTEM_DEFAULTWORKINGDIRECTORY\Azure-Samples_openhack-devops\src\HDInsight", [string] $AzCopyPath = "$Env:SYSTEM_DEFAULTWORKINGDIRECTORY\Azure-Samples_openhack-devops\scripts\PowerShell\tools\AzCopy.exe")
 
 & $AzCopyPath """$ArtifactsPath""", "https://$StorageAccountName.blob.core.windows.net/$StorageContainerName", "/DestKey:$StorageAccountKey", "/S", "/Y"

@@ -2,6 +2,12 @@
 
 $global:authResult = $null
 
+# Provision ML experiments
+Write-Output ""
+Write-Output "**************************************************************************************************"
+Write-Output "* Configuring ML..."
+Write-Output "**************************************************************************************************"
+
 function Authenticate()
 {
     $adal = "${env:ProgramFiles(x86)}\Microsoft SDKs\Azure\PowerShell\ServiceManagement\Azure\Services\Microsoft.IdentityModel.Clients.ActiveDirectory.dll"

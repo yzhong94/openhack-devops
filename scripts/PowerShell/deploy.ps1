@@ -1,98 +1,30 @@
-﻿#Requires -Module AzureRM.Resources
 Param(
    [string] [Parameter(Mandatory=$true)] $ResourceGroupLocation,
    [string] [Parameter(Mandatory=$true)] $ResourceGroupName,
-   [string] [Parameter(Mandatory=$false)] $MobileAppRepositoryUrl = $null
+   [int]    [Parameter(Mandatory=$true)] $numberOfDays,
+   [string] [Parameter(Mandatory=$true)] $keyVaultName,
+   [string] [Parameter(Mandatory=$true)] $keyVaultResourceGroup,
+   [string] [Parameter(Mandatory=$true)] $thumbprint
 )
 
 # Variables
-[string] $PreReqTemplateFile = '..\ARM\prerequisites.json'
+$repoRoot = "$Env:SYSTEM_DEFAULTWORKINGDIRECTORY" + "\Azure-Samples_openhack-devops"
+$sub = (Get-AzureRmContext).Subscription.Id
 
-[string] $TemplateFile = '..\ARM\scenario_complete.json'
-[string] $ParametersFile = '..\ARM\scenario_complete.params.json'
-
-[string] $dbSchemaDB = "..\..\src\SQLDatabase\MyDrivingDB.sql" 
-[string] $dbSchemaSQLAnalytics = "..\..\src\SQLDatabase\MyDrivingAnalyticsDB.sql"
-
+[string] $PreReqTemplateFile = "$repoRoot\scripts\ARM\prerequisites.json"
+[string] $TemplateFile = "$repoRoot\scripts\ARM\scenario_complete.json"
+[string] $ParametersFile = "$repoRoot\scripts\ARM\scenario_complete.params.json"
+[string] $dbSchemaDB = "$repoRoot\src\SQLDatabase\MyDrivingDB.sql" 
+[string] $dbSchemaSQLAnalytics = "$repoRoot\src\SQLDatabase\MyDrivingAnalyticsDB.sql"
 [string] $DeploymentName = ((Get-ChildItem $TemplateFile).BaseName + '-' + ((Get-Date).ToUniversalTime()).ToString('MMdd-HHmm'))
 
 $deployment1 = $null
 $deployment2 = $null
 
-Import-Module Azure -ErrorAction Stop
-
-$PreReqTemplateFile = [System.IO.Path]::Combine($PSScriptRoot, $PreReqTemplateFile)
-$TemplateFile = [System.IO.Path]::Combine($PSScriptRoot, $TemplateFile)
-$ParametersFile = [System.IO.Path]::Combine($PSScriptRoot, $ParametersFile)
-
-# verify if user is logged in by querying his subscriptions.
-# if none is found assume he is not
-Write-Output ""
-Write-Output "**************************************************************************************************"
-Write-Output "* Retrieving Azure subscription information..."
-Write-Output "**************************************************************************************************"
-try
-{
-	$Subscriptions = Get-AzureRmSubscription
-	if (!($Subscriptions)) {
-		Login-AzureRmAccount 
-	}
-}
-catch
-{
-    Login-AzureRmAccount 
-}
-
-# fail if we still can retrieve any subscription
-$Subscriptions = Get-AzureRmSubscription
-if (!($Subscriptions)) {
-    Write-Host "Login failed or there are no subscriptions available with your account." -ForegroundColor Red
-    Write-Host "Please logout using the command azure Remove-AzureAccount -Name [username] and try again." -ForegroundColor Red
-    exit
-}
-
-$subscription
-
-# if the user has more than one subscriptions force the user to select one
-if ($Subscriptions.Length -gt 1) {
-    $i = 1
-    $Subscriptions | % { Write-Host "$i) $($_.Name)"; $i++ }
-
-    while($true)
-    {
-        $input = Read-Host "Please choose which subscription to use (1-$($Subscriptions.Length))"
-        $intInput = -1
-
-        if ([int]::TryParse($input, [ref]$intInput) -and ($intInput -ge 1 -and $intInput -le $Subscriptions.Length)) {
-            Select-AzureRmSubscription -SubscriptionId $($Subscriptions.Get($intInput-1).SubscriptionId)
-            $subscription = $Subscriptions.Get($intInput-1)
-            break;
-        }
-    }
-} else {
-    $subscription = $Subscriptions
-}
-
-$numberOfDays = 0
-$inputOK = $false
-do
-{
-  try
-  {
-    [int]$numberOfDays = Read-Host "Enter the number of days you want to run the ADF pipeline"
-    if ($numberOfDays -gt 0) {
-        $inputOK = $true
-    }
-    else {
-        Write-Host -ForegroundColor red "Please enter a number greater than 0."
-    }
-  }
-  catch
-  {
-    Write-Host -ForegroundColor red "Please enter a numeric value."
-  } 
-}
-until ($inputOK)
+# Edit the ARM template with Key Vault values
+(Get-Content $ParametersFile) -replace "this-sub-id-will-be-changed-by-vsts",$sub | out-file $ParametersFile
+(Get-Content $ParametersFile) -replace "this-rg-name-will-be-changed-by-vsts",$keyVaultResourceGroup | out-file $ParametersFile
+(Get-Content $ParametersFile) -replace "this-key-vault-name-will-be-changed-by-vsts",$keyVaultName | out-file $ParametersFile
 
 # Create or update the resource group using the specified template file and template parameters file
 Write-Output ""
@@ -109,7 +41,7 @@ Write-Output "******************************************************************
 $deployment1 = New-AzureRmResourceGroupDeployment -Name "$DeploymentName-0" `
                                                  -ResourceGroupName $ResourceGroupName `
                                                  -TemplateFile $PreReqTemplateFile `
-                                                 -Force -Verbose
+                                                 -Mode Complete -Force -Verbose
 
 if ($deployment1.ProvisioningState -ne "Succeeded") {
 	Write-Error "Failed to provision the prerequisites storage account."
@@ -122,34 +54,15 @@ Write-Output "******************************************************************
 Write-Output "* Uploading files to blob storage..."
 Write-Output "**************************************************************************************************"
 Write-Output "Uploading hive scripts..."
-. .\scripts\Copy-ArtifactsToBlobStorage.ps1 -StorageAccountName $deployment1.Outputs.storageAccountName.Value `
-											-StorageAccountKey $deployment1.Outputs.storageAccountKey.Value `
-											-StorageContainerName $deployment1.Outputs.assetsContainerName.Value `
-											-ArtifactsPath '..\..\..\src\HDInsight'
+. "$repoRoot\scripts\PowerShell\scripts\Copy-ArtifactsToBlobStorage.ps1" -StorageAccountName $deployment1.Outputs.storageAccountName.Value -StorageAccountKey $deployment1.Outputs.storageAccountKey.Value -StorageContainerName $deployment1.Outputs.assetsContainerName.Value -ArtifactsPath "$repoRoot\src\HDInsight"
 
 # Create required services
-$templateParams = New-Object -TypeName Hashtable
-$TemplateParams.Add(("dataFactoryStartDate"), (Get-Date).ToUniversalTime().AddDays(1).ToString("s"))
-$TemplateParams.Add(("dataFactoryEndDate"), (Get-Date).ToUniversalTime().AddDays($numberOfDays + 1).ToString("s"))
-if ($MobileAppRepositoryUrl) {
-	Write-Warning "Overriding the mobile app repository URL..."
-	$templateParams.Add("mobileAppRepositoryUrl", $MobileAppRepositoryUrl)
-}
-
 Write-Output ""
 Write-Output "**************************************************************************************************"
 Write-Output "* Deploying the resources in the ARM template. This operation may take several minutes..."
 Write-Output "**************************************************************************************************"
 
-Write-Warning "If asked for SQL Server password use strong password as defined here: https://msdn.microsoft.com/library/ms161962.aspx"
-Write-Warning "Is at least 8 characters long and combines letters, numbers, and symbol characters within the password"
-
-$deployment2 = New-AzureRmResourceGroupDeployment -Name "$DeploymentName-1" `
-													-ResourceGroupName $ResourceGroupName `
-													-TemplateFile $TemplateFile `
-													-TemplateParameterFile $ParametersFile `
-													@templateParams `
-													-Force -Verbose
+$deployment2 = New-AzureRmResourceGroupDeployment -Name "$DeploymentName-1" -ResourceGroupName $ResourceGroupName -TemplateFile $TemplateFile -TemplateParameterFile $ParametersFile -Mode Complete -Force -Verbose
 
 if ($deployment2.ProvisioningState -ne "Succeeded") {
 	Write-Warning "Skipping the storage and database initialization..."
@@ -164,15 +77,16 @@ Write-Output "* Initializing blob storage..."
 Write-Output "**************************************************************************************************"
 $storageAccountName = $deployment2.Outputs.storageAccountNameAnalytics.Value
 $storageAccountKey = $deployment2.Outputs.storageAccountKeyAnalytics.Value
-. .\scripts\setupStorage.ps1 -StorageAccountName $storageAccountName -StorageAccountKey $storageAccountKey -ContainerName $deployment2.Outputs.rawdataContainerName.Value
-. .\scripts\setupStorage.ps1 -StorageAccountName $storageAccountName -StorageAccountKey $storageAccountKey -ContainerName $deployment2.Outputs.tripdataContainerName.Value
-. .\scripts\setupStorage.ps1 -StorageAccountName $storageAccountName -StorageAccountKey $storageAccountKey -ContainerName $deployment2.Outputs.referenceContainerName.Value
+. "$repoRoot\scripts\PowerShell\scripts\setupStorage.ps1" -StorageAccountName $storageAccountName -StorageAccountKey $storageAccountKey -ContainerName $deployment2.Outputs.rawdataContainerName.Value
+. "$repoRoot\scripts\PowerShell\scripts\setupStorage.ps1" -StorageAccountName $storageAccountName -StorageAccountKey $storageAccountKey -ContainerName $deployment2.Outputs.tripdataContainerName.Value
+. "$repoRoot\scripts\PowerShell\scripts\setupStorage.ps1" -StorageAccountName $storageAccountName -StorageAccountKey $storageAccountKey -ContainerName $deployment2.Outputs.referenceContainerName.Value
 
 Write-Output "Uploading sample data..."
-. .\scripts\Copy-ArtifactsToBlobStorage.ps1 -StorageAccountName $storageAccountName `
+. $repoRoot\scripts\PowerShell\scripts\Copy-ArtifactsToBlobStorage.ps1 -StorageAccountName $storageAccountName `
 											-StorageAccountKey $storageAccountKey `
 											-StorageContainerName $deployment2.Outputs.tripdataContainerName.Value `
-											-ArtifactsPath '..\..\Assets'
+											-ArtifactsPath "$repoRoot\scripts\Assets"
+
 
 # Initialize SQL databases
 Write-Output ""
@@ -181,15 +95,17 @@ Write-Output "* Preparing the SQL databases..."
 Write-Output "**************************************************************************************************"
 $databaseName = $deployment2.Outputs.sqlDBName.Value
 Write-Output "Initializing the '$databaseName' database..."
-. .\scripts\setupDb.ps1 -ServerName $deployment2.Outputs.sqlServerFullyQualifiedDomainName.Value `
-						-AdminLogin $deployment2.Outputs.sqlServerAdminLogin.Value `
+
+. "$repoRoot\scripts\PowerShell\scripts\setupDb.ps1" -ServerName $deployment2.Outputs.sqlServerFullyQualifiedDomainName.Value `
+    					-AdminLogin $deployment2.Outputs.sqlServerAdminLogin.Value `
 						-AdminPassword $deployment2.Outputs.sqlServerAdminPassword.Value `
 						-DatabaseName $deployment2.Outputs.sqlDBName.Value `
 						-ScriptPath $dbSchemaDB
 
 $databaseName = $deployment2.Outputs.sqlAnalyticsDBName.Value
 Write-Output "Initializing the '$databaseName' database..."
-. .\scripts\setupDb.ps1 -ServerName $deployment2.Outputs.sqlAnalyticsFullyQualifiedDomainName.Value `
+
+. "$repoRoot\scripts\PowerShell\scripts\setupDb.ps1" -ServerName $deployment2.Outputs.sqlAnalyticsFullyQualifiedDomainName.Value `
 						-AdminLogin $deployment2.Outputs.sqlAnalyticsServerAdminLogin.Value `
 						-AdminPassword $deployment2.Outputs.sqlAnalyticsServerAdminPassword.Value `
 						-DatabaseName $deployment2.Outputs.sqlAnalyticsDBName.Value `
@@ -197,30 +113,14 @@ Write-Output "Initializing the '$databaseName' database..."
 
 Write-Output ""
 
-# Provision ML experiments
-Write-Output ""
-Write-Output "**************************************************************************************************"
-Write-Output "* Configuring ML..."
-Write-Output "**************************************************************************************************"
-	
-$context = Get-AzureRmContext
-$thumbprint = Read-Host "Please provide the thumbprint of your Azure management certificate. Press [Enter] directly to sign in using AAD."
+# Set variables that will be passed to VSTS
+$owner = (Get-AzureRmContext).Account.Id
+$mlStorageAccountName = $deployment1.Outputs.mlStorageAccountName.Value
+$mlStorageAccountKey = $deployment1.Outputs.mlStorageAccountKey.Value
 
-.\scripts\CopyMLExperiment.ps1 $subscription.SubscriptionId 'MyDriving' $ResourceGroupLocation $context.Account.Id $deployment1.Outputs.mlStorageAccountName.Value $deployment1.Outputs.mlStorageAccountKey.Value 'https://storage.azureml.net/directories/2e55da807f4a4273bfa99852d3d6e304/items' 'MyDriving' 'https://storage.azureml.net/directories/a9fb6aeb3a164eedaaa28da34f02c3b0/items' 'MyDriving [Predictive Exp.]' $thumbprint
-
-# Deploy VSTS build definitions
-$confirmation = Read-Host "Do you want to deploy VSTS CI? [y/n]"
-if ($confirmation -eq 'y') {
-	Write-Output ""
-	Write-Output "**************************************************************************************************"
-	Write-Output "* Configuring VSTS CI..."
-	Write-Output "**************************************************************************************************"
-	$vstsAccount = Read-Host "Enter your VSTS account (http://<your account>.visualstudio.com)" 
-	$vstsPAT = Read-Host "Enter your VSTS PAT: (see http://blog.devmatter.com/personal-access-tokens-vsts/)"
-	$vstsProjectName = Read-Host "Enter the VSTS project name to be created"
-	$buildFiles = "..\VSTS"
-	$localFolder = Read-Host "Enter a local folder where MyDriving code will be checked out"
-	.\scripts\importVSTSBuildDefinition.ps1 $vstsAccount $vstsPAT $vstsProjectName $buildFiles $localFolder
-}
-
-Write-Output "The deployment is complete!"
+# VSTS variables to be used in the next task
+Write-Host "##vso[task.setvariable variable=sub]$sub"
+Write-Host "##vso[task.setvariable variable=owner]$owner"
+Write-Host "##vso[task.setvariable variable=mlStorageAccountName]$mlStorageAccountName"
+Write-Host "##vso[task.setvariable variable=mlStorageAccountKey]$mlStorageAccountKey"
+Write-Host "##vso[task.setvariable variable=thumbprint]$thumbprint"

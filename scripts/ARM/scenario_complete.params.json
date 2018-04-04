@@ -1,11 +1,47 @@
-﻿{
-  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {
-    "iotHubSku": { "value": { "name": "S1", "tier": "Standard", "capacity": 1 } },
-    "storageAccountType": { "value": "Standard_LRS" },
-    "sqlServiceObjectiveName": { "value": "S0" }, 
-    "sqlDBEdition": { "value": "Standard" },
-    "hostingPlanSku": { "value": { "tier": "Free", "name": "F1", "capacity": 0 } }
-  }
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+	"dataFactoryStartDate": { "value": "2018-03-17" },
+    "dataFactoryEndDate": { "value": "2018-04-16" },
+		"iotHubSku": {
+			"value": {
+				"name": "S1",
+				"tier": "Standard",
+				"capacity": 1
+			}
+		},
+		"storageAccountType": {
+			"value": "Standard_LRS"
+		},
+		"sqlServiceObjectiveName": {
+			"value": "S0"
+		},
+		"sqlDBEdition": {
+			"value": "Standard"
+		},
+		"hostingPlanSku": {
+			"value": {
+				"tier": "Free",
+				"name": "F1",
+				"capacity": 0
+			}
+		},
+		"sqlServerAdminPassword": {
+			"reference": {
+				"keyVault": {
+					"id": "/subscriptions/this-sub-id-will-be-changed-by-vsts/resourceGroups/this-rg-name-will-be-changed-by-vsts/providers/Microsoft.KeyVault/vaults/this-key-vault-name-will-be-changed-by-vsts"
+				},
+				"secretName": "sqlServerAdminPassword"
+			}
+		},
+		"sqlAnalyticsServerAdminPassword": {
+			"reference": {
+				"keyVault": {
+					"id": "/subscriptions/this-sub-id-will-be-changed-by-vsts/resourceGroups/this-rg-name-will-be-changed-by-vsts/providers/Microsoft.KeyVault/vaults/this-key-vault-name-will-be-changed-by-vsts"
+				},
+				"secretName": "sqlAnalyticsServerAdminPassword"
+			}
+		}
+	}
 }
