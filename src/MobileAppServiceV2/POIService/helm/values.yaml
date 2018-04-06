@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 replicaCount: 2
 repository:
-  image: rgacr123.azurecr.io/test
+  image: acrreplace.azurecr.io/devopsoh/imagereplace
   tag: latest
   pullPolicy: Always
 image:
@@ -17,7 +17,7 @@ ingress:
   annotations:
     kubernetes.io/ingress.class: traefik
   rules:
-    52.191.212.53.xip.io:
+    dnsurlreplace:
       - path: /api/GetAllPOIs
         serviceName: api-poi-mydrive-poi
         servicePort: 80 
