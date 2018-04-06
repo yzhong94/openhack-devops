@@ -15,12 +15,15 @@ If you don't already have a Key Vault or want to create a new one, use the creat
 
 Usage:
 
-.\createKeyVault.ps1 <resource group name> <resource group location> <key vault name> <service principal ID used by your VSTS account> <your azure subscription ID> <key vault admin user ID>
+`.\createKeyVault.ps1 <resource group name> <resource group location> <key vault name> <service principal ID used by your VSTS account> <your azure subscription ID> <key vault admin user ID>`
 
-Resource group name: Resource group to be created
-Resource group location: Location of the resource group that will be created
-Key Vault Name: Choose a unique name for you Key Vault
-Service principal ID used by your VSTS account: You need to authorize the SPN created by VSTS to access your Key Vault. To find that SPN, go to your VSTS account, then S
+**Service principal ID used by your VSTS account:** You need to authorize the SPN created by VSTS to access your Key Vault. To find that SPN, go to your VSTS account > Your Project > Settings > Services.
+
+Find the Azure RM endpoint you have added to VSTS, click on **Update Service Configuration**. Click on the **use the full version of the endpoint** link. You will find your Service Principal ID there.
+
+![VSTS Service Principal ID](Images/rm-endpoint-link.png?raw=true "VSTS Service Principal ID")
+
+**Key vault admin user ID:** Enter your full name in Azure AD. E.g. 'John Doe'
 
 
 ## Create a VSTS Release pipeline 
