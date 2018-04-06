@@ -11,7 +11,7 @@ VSTS release pipeline allows you to deploy the entire backend on your Azure subs
 ## Create a Key Vault
 You need to have a Key Vault to keep the secrets that are used in the VSTS pipeline and PowerShell scripts. If you already have a Key Vault, you can use that. Make sure to follow the steps below for setting up your Key Vault so VSTS can access it.
 
-If you don't already have a Key Vault or want to create a new one, use the createKeyVault.ps1 script under the **/scripts/PowerShell/scripts** folder.
+If you don't already have a Key Vault or want to create a new one, use the `createKeyVault.ps1` script under the **/scripts/PowerShell/scripts** folder.
 
 Usage:
 
@@ -26,8 +26,10 @@ Find the Azure RM endpoint you have added to VSTS, click on **Update Service Con
 **Key vault admin user ID:** Enter your full name in Azure AD. E.g. 'John Doe'
 
 
+
+
 ## Create a VSTS Release pipeline 
-Create a new project in your VSTS account. Then import the Release Management pipeline file named OpenHack-RM.json under the **/scripts/PowerShell/tools** directory and made the necessary changes (Azure Subscription etc.)
+Create a new project in your VSTS account. Then import the Release Management pipeline file named `OpenHack-RM.json` under the **/scripts/PowerShell/tools** directory and made the necessary changes (Azure Subscription etc.)
 
 Run the release and follow the following steps when the release is completed successfully.
 
