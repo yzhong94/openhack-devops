@@ -132,7 +132,7 @@ Write-Host "##vso[task.setvariable variable=mlStorageAccountKey]$mlStorageAccoun
 Write-Host "##vso[task.setvariable variable=sqlServerFullyQualifiedDomainName]$sqlServerFullyQualifiedDomainName"
 Write-Host "##vso[task.setvariable variable=sqlServerAdminLogin]$sqlServerAdminLogin"
 Write-Host "##vso[task.setvariable variable=sqlDBName]$sqlDBName"
-Write-Host "##vso[task.setvariable variable=sqlAnalyticsServerAdminLogin]$sqlAnalyticsServerAdminLogin"
+Write-Host "##vso[task.setvariable variable=sqlAnalyticsFullyQualifiedDomainName]$sqlAnalyticsFullyQualifiedDomainName"
 Write-Host "##vso[task.setvariable variable=sqlAnalyticsServerAdminLogin]$sqlAnalyticsServerAdminLogin"
 Write-Host "##vso[task.setvariable variable=sqlAnalyticsDBName]$sqlAnalyticsDBName"
 
