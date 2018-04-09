@@ -120,6 +120,9 @@ $mlStorageAccountKey = $deployment1.Outputs.mlStorageAccountKey.Value
 $sqlServerFullyQualifiedDomainName = $deployment2.Outputs.sqlServerFullyQualifiedDomainName.Value
 $sqlServerAdminLogin = $deployment2.Outputs.sqlServerAdminLogin.Value
 $sqlDBName = $deployment2.Outputs.sqlDBName.Value
+$sqlAnalyticsFullyQualifiedDomainName = $deployment2.Outputs.sqlAnalyticsFullyQualifiedDomainName.Value
+$sqlAnalyticsServerAdminLogin = $deployment2.Outputs.sqlAnalyticsServerAdminLogin.Value
+$sqlAnalyticsDBName = $deployment2.Outputs.sqlAnalyticsDBName.Value
 
 # VSTS variables to be used in the next task
 Write-Host "##vso[task.setvariable variable=sub]$sub"
@@ -129,5 +132,9 @@ Write-Host "##vso[task.setvariable variable=mlStorageAccountKey]$mlStorageAccoun
 Write-Host "##vso[task.setvariable variable=sqlServerFullyQualifiedDomainName]$sqlServerFullyQualifiedDomainName"
 Write-Host "##vso[task.setvariable variable=sqlServerAdminLogin]$sqlServerAdminLogin"
 Write-Host "##vso[task.setvariable variable=sqlDBName]$sqlDBName"
+Write-Host "##vso[task.setvariable variable=sqlAnalyticsServerAdminLogin]$sqlAnalyticsServerAdminLogin"
+Write-Host "##vso[task.setvariable variable=sqlAnalyticsServerAdminLogin]$sqlAnalyticsServerAdminLogin"
+Write-Host "##vso[task.setvariable variable=sqlAnalyticsDBName]$sqlAnalyticsDBName"
+
 
 
