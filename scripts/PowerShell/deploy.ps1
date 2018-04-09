@@ -117,10 +117,17 @@ Write-Output ""
 $owner = (Get-AzureRmContext).Account.Id
 $mlStorageAccountName = $deployment1.Outputs.mlStorageAccountName.Value
 $mlStorageAccountKey = $deployment1.Outputs.mlStorageAccountKey.Value
+$sqlServerFullyQualifiedDomainName = $deployment2.Outputs.sqlServerFullyQualifiedDomainName.Value
+$sqlServerAdminLogin = $deployment2.Outputs.sqlServerAdminLogin.Value
+$sqlDBName = $deployment2.Outputs.sqlDBName.Value
 
 # VSTS variables to be used in the next task
 Write-Host "##vso[task.setvariable variable=sub]$sub"
 Write-Host "##vso[task.setvariable variable=owner]$owner"
 Write-Host "##vso[task.setvariable variable=mlStorageAccountName]$mlStorageAccountName"
 Write-Host "##vso[task.setvariable variable=mlStorageAccountKey]$mlStorageAccountKey"
-Write-Host "##vso[task.setvariable variable=thumbprint]$thumbprint"
+Write-Host "##vso[task.setvariable variable=sqlServerFullyQualifiedDomainName]$sqlServerFullyQualifiedDomainName"
+Write-Host "##vso[task.setvariable variable=sqlServerAdminLogin]$sqlServerAdminLogin"
+Write-Host "##vso[task.setvariable variable=sqlDBName]$sqlDBName"
+
+
