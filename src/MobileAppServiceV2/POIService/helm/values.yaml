@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 replicaCount: 2
 repository:
-  image: rgacr123.azurecr.io/test
+  image: acrreplace/devopsoh/imagetagreplace
   tag: latest
   pullPolicy: Always
 image:
@@ -17,10 +17,10 @@ ingress:
   annotations:
     kubernetes.io/ingress.class: traefik
   rules:
-    52.191.212.53.xip.io:
+    dnsurlreplace:
       - path: /api/GetAllPOIs
         serviceName: api-poi-mydrive-poi
-        servicePort: 80 
+        servicePort: 80
 resources: {}
  # We usually recommend not to specify default resources and to leave this as a conscious
  # choice for the user. This also increases chances charts run on environments with little
