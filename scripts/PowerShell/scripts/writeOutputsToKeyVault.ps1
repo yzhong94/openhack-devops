@@ -6,7 +6,6 @@ Write-Host "2"
 Set-AzureKeyVaultSecret -VaultName $keyVaultName -Name 'sqlDBName' -SecretValue (ConvertTo-SecureString $sqlDBName -AsPlainText -Force)
 Write-Host "3"
 
-
 # MyDriving Analytics DB
 Set-AzureKeyVaultSecret -VaultName $keyVaultName -Name 'sqlAnalyticsFullyQualifiedDomainName' -SecretValue (ConvertTo-SecureString $sqlAnalyticsFullyQualifiedDomainName -AsPlainText -Force)
 Write-Host "4"
