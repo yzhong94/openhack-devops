@@ -1,0 +1,57 @@
+apiVersion: tools/v1Beta
+kind: Deployment
+metadata:
+  name: {{ .Values.image.name }}-deploy
+  labels:
+    deploy: {{ .Values.image.label }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.image.label }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.image.label }}
+    spec:
+      containers:
+      - image: {{ .Values.repository.image }}:{{ .Values.repository.tag }}
+        imagePullPolicy: {{ .Values.repository.pullPolicy }}
+        name: {{ .Values.image.name }}
+        ports:
+          - containerPort: {{ .Values.image.containerPort }}
+            name: http
+            protocol: TCP
+          - containerPort: 443
+            name: https
+            protocol: TCP
+        env:
+          - name: IOT_HUB_URI
+            valueFrom:
+              secretKeyRef:
+                name: devicesim
+                key: iot_hub_uri
+          - name: DEVICE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: devicesim
+                key: device_key
+          - name: DEVICE_ID
+            valueFrom:
+              secretKeyRef:
+                name: devicesim
+                key: device_id
+          - name: AZURE_MOBILE_SERVICE
+            valueFrom:
+              secretKeyRef:
+                name: devicesim
+                key: azure_mobile_service
+		  - name: FILE_VOLUME
+            valueFrom:
+              secretKeyRef:
+                name: devicesim
+                key: file_volume
+      # imagePullSecrets:
+      #   - name: acrsecret
+      nodeSelector:
+        beta.kubernetes.io/os: linux
