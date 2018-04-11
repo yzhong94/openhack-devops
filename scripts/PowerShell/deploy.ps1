@@ -116,7 +116,7 @@ Write-Output ""
 # Set variables that will be passed to VSTS
 
 $owner = 'oguzp@microsoft.com'
-#$owner = (Get-AzureRmContext).Account.Id
+# $owner = (Get-AzureRmContext).Account.Id
 $mlStorageAccountName = $deployment1.Outputs.mlStorageAccountName.Value
 $mlStorageAccountKey = $deployment1.Outputs.mlStorageAccountKey.Value
 $sqlServerFullyQualifiedDomainName = $deployment2.Outputs.sqlServerFullyQualifiedDomainName.Value
