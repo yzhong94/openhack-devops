@@ -41,7 +41,7 @@ Write-Output "******************************************************************
 $deployment1 = New-AzureRmResourceGroupDeployment -Name "$DeploymentName-0" `
                                                  -ResourceGroupName $ResourceGroupName `
                                                  -TemplateFile $PreReqTemplateFile `
-                                                 -Mode Complete -Force -Verbose
+                                                 -Force -Verbose
 
 if ($deployment1.ProvisioningState -ne "Succeeded") {
 	Write-Error "Failed to provision the prerequisites storage account."
@@ -62,7 +62,7 @@ Write-Output "******************************************************************
 Write-Output "* Deploying the resources in the ARM template. This operation may take several minutes..."
 Write-Output "**************************************************************************************************"
 
-$deployment2 = New-AzureRmResourceGroupDeployment -Name "$DeploymentName-1" -ResourceGroupName $ResourceGroupName -TemplateFile $TemplateFile -TemplateParameterFile $ParametersFile -Mode Complete -Force -Verbose
+$deployment2 = New-AzureRmResourceGroupDeployment -Name "$DeploymentName-1" -ResourceGroupName $ResourceGroupName -TemplateFile $TemplateFile -TemplateParameterFile $ParametersFile -Force -Verbose
 
 if ($deployment2.ProvisioningState -ne "Succeeded") {
 	Write-Warning "Skipping the storage and database initialization..."
