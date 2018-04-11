@@ -114,10 +114,8 @@ Write-Output "Initializing the '$databaseName' database..."
 Write-Output ""
 
 # Set variables that will be passed to VSTS
-
 $owner = 'oguzp@microsoft.com'
-
-<#$owner = (Get-AzureRmContext).Account.Id
+#$owner = (Get-AzureRmContext).Account.Id
 $mlStorageAccountName = $deployment1.Outputs.mlStorageAccountName.Value
 $mlStorageAccountKey = $deployment1.Outputs.mlStorageAccountKey.Value
 $sqlServerFullyQualifiedDomainName = $deployment2.Outputs.sqlServerFullyQualifiedDomainName.Value
@@ -126,12 +124,10 @@ $sqlDBName = $deployment2.Outputs.sqlDBName.Value
 $sqlAnalyticsFullyQualifiedDomainName = $deployment2.Outputs.sqlAnalyticsFullyQualifiedDomainName.Value
 $sqlAnalyticsServerAdminLogin = $deployment2.Outputs.sqlAnalyticsServerAdminLogin.Value
 $sqlAnalyticsDBName = $deployment2.Outputs.sqlAnalyticsDBName.Value
-#>
 
 # VSTS variables to be used in the next task
 Write-Host "##vso[task.setvariable variable=sub]$sub"
 Write-Host "##vso[task.setvariable variable=owner]$owner"
-<#
 Write-Host "##vso[task.setvariable variable=mlStorageAccountName]$mlStorageAccountName"
 Write-Host "##vso[task.setvariable variable=mlStorageAccountKey]$mlStorageAccountKey"
 Write-Host "##vso[task.setvariable variable=sqlServerFullyQualifiedDomainName]$sqlServerFullyQualifiedDomainName"
@@ -140,6 +136,5 @@ Write-Host "##vso[task.setvariable variable=sqlDBName]$sqlDBName"
 Write-Host "##vso[task.setvariable variable=sqlAnalyticsFullyQualifiedDomainName]$sqlAnalyticsFullyQualifiedDomainName"
 Write-Host "##vso[task.setvariable variable=sqlAnalyticsServerAdminLogin]$sqlAnalyticsServerAdminLogin"
 Write-Host "##vso[task.setvariable variable=sqlAnalyticsDBName]$sqlAnalyticsDBName"
-#>
 
 
