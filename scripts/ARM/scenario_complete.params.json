@@ -32,7 +32,7 @@
 				"keyVault": {
 					"id": "/subscriptions/this-sub-id-will-be-changed-by-vsts/resourceGroups/this-rg-name-will-be-changed-by-vsts/providers/Microsoft.KeyVault/vaults/this-key-vault-name-will-be-changed-by-vsts"
 				},
-				"secretName": "sqlServerAdminPassword"
+				"secretName": "shared-sqlServerAdminPassword"
 			}
 		},
 		"sqlAnalyticsServerAdminPassword": {
@@ -40,7 +40,7 @@
 				"keyVault": {
 					"id": "/subscriptions/this-sub-id-will-be-changed-by-vsts/resourceGroups/this-rg-name-will-be-changed-by-vsts/providers/Microsoft.KeyVault/vaults/this-key-vault-name-will-be-changed-by-vsts"
 				},
-				"secretName": "sqlAnalyticsServerAdminPassword"
+				"secretName": "shared-sqlAnalyticsServerAdminPassword"
 			}
 		}
 	}
