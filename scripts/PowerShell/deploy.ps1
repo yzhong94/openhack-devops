@@ -129,8 +129,9 @@ $sqlAnalyticsDBName = $deployment2.Outputs.sqlAnalyticsDBName.Value
 #>
 
 # VSTS variables to be used in the next task
-<#Write-Host "##vso[task.setvariable variable=sub]$sub"
+Write-Host "##vso[task.setvariable variable=sub]$sub"
 Write-Host "##vso[task.setvariable variable=owner]$owner"
+<#
 Write-Host "##vso[task.setvariable variable=mlStorageAccountName]$mlStorageAccountName"
 Write-Host "##vso[task.setvariable variable=mlStorageAccountKey]$mlStorageAccountKey"
 Write-Host "##vso[task.setvariable variable=sqlServerFullyQualifiedDomainName]$sqlServerFullyQualifiedDomainName"
