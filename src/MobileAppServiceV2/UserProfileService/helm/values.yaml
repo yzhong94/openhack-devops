@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 replicaCount: 2
 repository:
-  image: dtzar/mydrive-user
+  image: acrreplace.azurecr.io/devopsoh/imagereplace
   tag: latest
   pullPolicy: Always
 image:
@@ -17,7 +17,7 @@ ingress:
   annotations:
     kubernetes.io/ingress.class: traefik
   rules:
-    mydriving-teamadmin.julien.work:
+    dnsurlreplace:
       - path: /tables/UserProfile
         serviceName: api-user-mydrive-user
         servicePort: 80

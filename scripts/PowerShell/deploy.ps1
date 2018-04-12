@@ -41,7 +41,7 @@ Write-Output "******************************************************************
 $deployment1 = New-AzureRmResourceGroupDeployment -Name "$DeploymentName-0" `
                                                  -ResourceGroupName $ResourceGroupName `
                                                  -TemplateFile $PreReqTemplateFile `
-                                                 -Force -Verbose
+                                                 -Mode Complete -Force -Verbose
 
 if ($deployment1.ProvisioningState -ne "Succeeded") {
 	Write-Error "Failed to provision the prerequisites storage account."
@@ -136,5 +136,4 @@ Write-Host "##vso[task.setvariable variable=sqlDBName]$sqlDBName"
 Write-Host "##vso[task.setvariable variable=sqlAnalyticsFullyQualifiedDomainName]$sqlAnalyticsFullyQualifiedDomainName"
 Write-Host "##vso[task.setvariable variable=sqlAnalyticsServerAdminLogin]$sqlAnalyticsServerAdminLogin"
 Write-Host "##vso[task.setvariable variable=sqlAnalyticsDBName]$sqlAnalyticsDBName"
-
 
