@@ -21,7 +21,7 @@ namespace MyDriving.POIService.v2
         {
             try
             {
-                log.Info("C# HTTP trigger function processed a request.");
+                log.Info("Starting azure function executions @" + DateTime.Now.ToString());
 
                 IConfiguration funcConfiguration;
 
@@ -48,17 +48,23 @@ namespace MyDriving.POIService.v2
 
                 using (var sqlConn = new SqlConnection(connectionString))
                 {
-                    sqlConn.Open();
+                    log.Info("Connecting to database");
 
+                    sqlConn.Open();
+                    
                     string query = $"SELECT Id, Deleted, Latitude, Longitude, POIType, Timestamp, TripId FROM POIs WHERE TripId = '{tripId}'";
+
+                    log.Info("Executing SQL Query: " + query);
 
                     var sqlCommand = new SqlCommand(query, sqlConn);
 
                     var rows = sqlCommand.ExecuteReader(System.Data.CommandBehavior.CloseConnection);
 
                     if (!rows.HasRows)
+                    {
+                        log.Info("There are no POIs for this Trip.");
                         return new BadRequestObjectResult("There are no POIs for this Trip.");
-
+                    }
                     List<POI> poiList = new List<POI>();
 
                     while (rows.Read())
@@ -79,11 +85,15 @@ namespace MyDriving.POIService.v2
 
                     var poisSerialized = JsonConvert.SerializeObject(poiList);
 
+                    log.Info("Data returned: " + poisSerialized);
+
                     return new OkObjectResult(poisSerialized);
                 }
             }
             catch (Exception exception)
             {
+                log.Info(exception.StackTrace);
+
                 return new OkObjectResult(new {
                     StackTrace = exception.StackTrace,
                     Message = exception.Message
