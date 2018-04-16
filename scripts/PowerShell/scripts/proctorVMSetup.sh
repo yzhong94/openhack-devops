@@ -27,5 +27,5 @@ chmod 700 get_helm.sh
 echo "############################## JQ ############################"
 apt-get install jq -y
 
-# echo "############################## PULL TEAM-CLI FROM GITHUB ##############################"
-# git pull https://github.com/Azure-Samples/openhack-team-cli.git
+echo "############################## PULL TEAM-CLI FROM GITHUB ##############################"
+git pull https://github.com/Azure-Samples/openhack-team-cli.git
