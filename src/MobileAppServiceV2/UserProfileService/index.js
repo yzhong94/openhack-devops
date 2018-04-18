@@ -8,8 +8,8 @@ var app = require('connect')();
 var swaggerTools = require('swagger-tools');
 var jsyaml = require('js-yaml');
 var serverPort = 8080;
-var logger = require('morgan');
-var loggerOpts = logger(':prefix :remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"');
+//var logger = require('morgan');
+//var loggerOpts = logger(':prefix :remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"');
 
 
 // swaggerRouter configuration
@@ -38,7 +38,7 @@ swaggerTools.initializeMiddleware(swaggerDoc, function (middleware) {
   // Serve the Swagger documents and Swagger UI
   app.use(middleware.swaggerUi());
 
-  app.use(loggerOpts);
+  //app.use(loggerOpts);
   // Start the server
   http.createServer(app).listen(serverPort, function () {
     //console.log(req.method, req.url, 'HTTP/' + req.httpVersion)
